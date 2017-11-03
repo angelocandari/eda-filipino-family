@@ -1,0 +1,98 @@
+---
+title: "Typical Filipino"
+output: 
+  html_document:
+    theme: spacelab
+    highlight: monochrome
+    css: style.css
+---
+
+# Introduction
+Filipinos are cheerful, resourceful and practical people. It is in our nature to make
+the best out a of a situation, no matter how hard it is, and still manage to smile
+while talking about it. We get this from our strong family values and religious beliefs.
+However, our ideals are not always represented in our actions specially when it comes
+to our financial priorities. I would always hear stories of parents working abroad for
+10 to 20 years and coming back to their families poorer than they were before they left.
+
+## Objectives
+In this article, I would like to uncover the spending habits and financial priorities of
+a typical Filipino family and try to understand why Filipinos with good paying jobs 
+are still poor. 
+
+## Dataset Source
+This dataset is from The Philippine Statistics Authority who conducts the Family Income
+and Expediture Survey (FEIS) every 3 years nationwide. This is from the most recent 
+survey 2015. The raw data was cleaned by Francis Paul Flores from his
+[kaggle.com/grosvenpaul](https://www.kaggle.com/grosvenpaul/datasets).
+
+# Getting a Feel of the Data
+The Dataset contains 41,544 observations of Filipino Households from every Region of
+the country. It is comprised of 60 variables describing each family on their income,
+family description and expenditure.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(readr)
+
+fies <- read_csv("fies.csv")
+
+# Rename Lables for easier reference.
+names(fies) <- c("income", "region", "expense", "source", 
+                 "agri_house", "exp_bread", "exp_rice", "exp_meat", 
+                 "exp_seafood", "exp_fruit", "exp_veg", "exp_resto_hotel", 
+                 "exp_alcoh", "exp_taba", "exp_clothe", "exp_house_water", 
+                 "exp_rent", "exp_med", "exp_trans", "exp_comms", 
+                 "exp_edu", "exp_misc", "exp_spec", "exp_farm",
+                 "inc_entrep", "head_gender", "head_age", "head_stat", 
+                 "head_educ", "head_job_bus", "head_occup", "head_workclass", 
+                 "family_t", "family_n", "kids_n", "young_n", 
+                 "employed_n", "house_t", "roof_t", "wall_t", 
+                 "house_area", "house_age", "bed_n", "house_tenure",
+                 "toilet", "electric", "water_t", "tv_n", 
+                 "DVD_n", "sterio_n", "ref_n", "wash_n", 
+                 "aircon_n", "car_n", "tel_n", "cell_n",
+                 "pc_n", "stove_n", "mboat_n", "mbike_n")
+```
+
+There are 60 variables in this dataset and are not code friendly. First thing to do is
+rename each column key. In the interest of exploration, I will keep each column and 
+describe them as I go through this analysis. A detailed desciption of each column is 
+documented on a separate txt file for your reference.
+
+```{r}
+names(fies)
+```
+
+```{r}
+str(fies)
+```
+
+
+
+## Income Distribution
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+
+ggplot(fies, aes(income)) +
+  geom_histogram()
+
+```
+It comes to no surprise that income per household is skewed to the left, where there is more
+poor families and few rich people with dramatic outlying incomes.
+
+```{r}
+summary(fies$income)
+```
+Doing a quick summary of the income, we see that the average income of each household is
+247,556 Php annually. But this is skewed because of the maximum income of 11 mill Php of
+the super rich.
+
+
+```{r}
+ggplot(fies, aes(income)) +
+  geom_histogram() +
+  scale_x_log10()
+```
+
+

@@ -1,0 +1,6 @@
+pre {
+  white-space: pre;
+  overflow-y: auto;
+  overflow-x: auto;
+  max-height: 500px;
+}
