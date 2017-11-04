@@ -64,11 +64,6 @@ documented on a separate txt file for your reference.
 names(fies)
 ```
 
-```{r echo=FALSE}
-str(fies)
-```
-
-
 
 ## Income Distribution
 
@@ -134,33 +129,34 @@ library(dplyr)
 
 fies[, head_occup_class = ]
 
+professionals_class <- paste(c("manag", "medical", "dentist", "sales", "lawyer", "architect", "supervisor",
+                         "principals", "trade", "education", "chemist", "scientist", "justice", 
+                         "profession", "engineer", "director", "accountant", "secretaries", 
+                         "therapist", "opticians", "Veter"), collapse = "|")
+
+farmer_class <- paste(c("farm", "fish", "growers", "gather", "raiser", "cultivat", 
+                        "plant", "hunter", "village"), collapse = "|")
+
+worker_class <- paste(c("workers", "carpenters", "welder", "helper", "clean", "launder", "tailor", "labor", 
+                        "driver", "electr", "technician", "freight", "mason", "porter", "waiter", "cook", 
+                        "clerk", "operator", "mechanic", "foremen", "caretaker","lineman", "varnish", 
+                        "conductor", "bookkeeper", "transport", "inspector", "agent", "undertaker", 
+                        "insurance", "healers", "loggers", "wood", "roofers", "cutter", "assembler", 
+                        "builder", "metal", "assistant", "tanners", "garbage", "repair", "prepare", 
+                        "rigger", "practitioners"), collapse = "|")
+
+merchant_class <- paste(c("vendors", "pawn", "buy", "baker", "maker"), collapse = "|")
+
+artist_class <- paste(c("designer", "artists", "singers", "television", "dancer", "fashion"), collapse = "|")
+
 fies$head_occup_class <- with(fies,
-                              ifelse(head_workclass %in% 
-                                       str_subset(head_workclass, "government"), "government",
-                              ifelse(head_occup %in% 
-                                       str_subset(head_occup, c("drivers", 
-                                                                "conductor")), "drivers",
-                              ifelse(head_occup %in% 
-                                       str_subset(head_occup, c("farm",
-                                                                "fish")), "farmers",
-                              ifelse(head_occup %in% 
-                                       str_subset(head_occup, "manag"), "managers",
-                              ifelse(head_occup %in% 
-                                       str_subset(head_occup, c("labor", 
-                                                                "Carpenters",
-                                                                "Masons",
-                                                                "Painters",
-                                                                "electricians",
-                                                                "workers")), "workers",
-                              ifelse(head_occup %in% 
-                                       str_subset(head_occup, "vendors"), "vendors",
-                              ifelse(head_occup %in% 
-                                       str_subset(head_occup, "fish"), "fishermen",
-                              ifelse(head_occup %in% 
-                                       str_subset(head_occup, c("helpers", 
-                                                                "cleaners",
-                                                                "launder")), "helpers",
-                              NA)))))))))
+                              ifelse(str_detect(head_workclass, "government"), "government",
+                              ifelse(grepl(professionals_class, head_occup, ignore.case = T), "professionals",
+                              ifelse(grepl(farmer_class, head_occup, ignore.case = T), "farmers",
+                              ifelse(grepl(worker_class, head_occup, ignore.case = T), "workers",
+                              ifelse(grepl(merchant_class, head_occup, ignore.case = T), "merchant",
+                              ifelse(grepl(artist_class, head_occup, ignore.case = T), "arts",
+                              NA)))))))
 
 fies.occup <- fies %>%
   filter(is.na(fies$head_occup_class)) %>%
@@ -168,15 +164,16 @@ fies.occup <- fies %>%
   summarise(n= n(),
             income_mean = mean(income),
             income_median = median(income)) %>%
-  arrange(head_workclass, desc(n))
+  arrange(desc(n), head_workclass)
 
 fies.occup
+
+tapply(fies$income, fies$head_occup_class, summary)
 
 fies <- subset(fies, head_occup == str_subset(fies$head_occup, "drivers")) %>% 
   mutate(fies, head_occup_class = "drivers")
 str_subset(fies$head_occup, "drivers")
-head(fies)
-fies$head_occup_class <- NULL
+subset(fies, head_occup_class == "professionals")
 ```
 
 
@@ -191,4 +188,9 @@ ggplot(fies, aes(income)) +
   facet_wrap( ~ head_occup_class)
 ```
 
+```{r}
+ggplot(fies, aes(income)) +
+  geom_histogram() +
+  facet_wrap(~ head_educ)
+```
 
