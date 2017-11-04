@@ -127,11 +127,9 @@ ggplot(fies, aes(income)) +
 library(stringr)
 library(dplyr)
 
-fies[, head_occup_class = ]
-
 professionals_class <- paste(c("manag", "medical", "dentist", "sales", "lawyer", "architect", "supervisor",
                          "principals", "trade", "education", "chemist", "scientist", "justice", 
-                         "profession", "engineer", "director", "accountant", "secretaries", 
+                         "engineer", "director", "accountant", "secretaries", 
                          "therapist", "opticians", "Veter"), collapse = "|")
 
 farmer_class <- paste(c("farm", "fish", "growers", "gather", "raiser", "cultivat", 
@@ -151,9 +149,9 @@ artist_class <- paste(c("designer", "artists", "singers", "television", "dancer"
 
 fies$head_occup_class <- with(fies,
                               ifelse(str_detect(head_workclass, "government"), "government",
+                              ifelse(grepl(worker_class, head_occup, ignore.case = T), "workers",
                               ifelse(grepl(professionals_class, head_occup, ignore.case = T), "professionals",
                               ifelse(grepl(farmer_class, head_occup, ignore.case = T), "farmers",
-                              ifelse(grepl(worker_class, head_occup, ignore.case = T), "workers",
                               ifelse(grepl(merchant_class, head_occup, ignore.case = T), "merchant",
                               ifelse(grepl(artist_class, head_occup, ignore.case = T), "arts",
                               NA)))))))
@@ -167,13 +165,31 @@ fies.occup <- fies %>%
   arrange(desc(n), head_workclass)
 
 fies.occup
-
+```
+```{r}
 tapply(fies$income, fies$head_occup_class, summary)
 
-fies <- subset(fies, head_occup == str_subset(fies$head_occup, "drivers")) %>% 
-  mutate(fies, head_occup_class = "drivers")
-str_subset(fies$head_occup, "drivers")
-subset(fies, head_occup_class == "professionals")
+fies.professionals <- fies %>%
+  filter(fies$head_occup_class == "professionals") %>%
+  group_by(head_occup) %>%
+  summarise(income_mean = mean(income),
+            income_median = median(income),
+            n= n()) %>%
+  arrange(desc(income_mean))
+
+fies.professionals
+```
+
+```{r}
+fies.workers <- fies %>%
+  filter(fies$head_occup_class == "workers") %>%
+  group_by(head_occup) %>%
+  select(head_occup, income) %>%
+  arrange(desc(income), head_occup)
+
+fies.workers
+
+subset(fies, income == 5652261)
 ```
 
 
