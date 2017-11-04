@@ -96,16 +96,99 @@ set.seed(222)
 fies_sam <- fies[sample(nrow(fies), 10000), ]
 ggplot(fies_sam, aes(income)) +
   geom_histogram() +
-  scale_x_continuous(trans = log10_trans(), breaks = c(10000, 25000, 70000, 150000,
-                                                       400000,
-                                                       1000000, 2000000))
+  scale_x_continuous(trans = log10_trans(), 
+                     breaks = c(10000, 25000, 70000,
+                                150000, 400000, 
+                                1000000, 2000000))
 ```
 
 We transform the histogram to adjust the power of magnitude of each income and as a result
 we can see a beautiful normal distribution. This tells us that even though the distribution
 of the linear graph is long-tailed because of the ultra rich, the log scale allows us to
 see the underlying data that distribution of income is pretty normal and that it only
-differs on how much people are earning. And so this is why we the median is a better
+differs on how much people are earning. And so this is why the median is a better
 measure of center than the mean because the median is not heavily influenced by the outliers.
+
+The Rich are really rich at 11 mill Php annual income and the Poor are really poor with
+only 11,285 Php but the average Filipino would roughly earn around 150,000 Php.
+
+```{r}
+fies$head_occup <- factor(fies$head_occup)
+fies$head_workclass <-factor(fies$head_workclass)
+
+ggplot(fies, aes(income)) +
+  geom_histogram() +
+  scale_x_continuous(
+                     trans = log10_trans(), 
+                     breaks = c(10000, 25000, 70000,
+                                150000, 400000, 
+                                1000000, 2000000)) +
+  facet_wrap(~ head_workclass)
+```
+
+
+
+```{r}
+library(stringr)
+library(dplyr)
+
+fies[, head_occup_class = ]
+
+fies$head_occup_class <- with(fies,
+                              ifelse(head_workclass %in% 
+                                       str_subset(head_workclass, "government"), "government",
+                              ifelse(head_occup %in% 
+                                       str_subset(head_occup, c("drivers", 
+                                                                "conductor")), "drivers",
+                              ifelse(head_occup %in% 
+                                       str_subset(head_occup, c("farm",
+                                                                "fish")), "farmers",
+                              ifelse(head_occup %in% 
+                                       str_subset(head_occup, "manag"), "managers",
+                              ifelse(head_occup %in% 
+                                       str_subset(head_occup, c("labor", 
+                                                                "Carpenters",
+                                                                "Masons",
+                                                                "Painters",
+                                                                "electricians",
+                                                                "workers")), "workers",
+                              ifelse(head_occup %in% 
+                                       str_subset(head_occup, "vendors"), "vendors",
+                              ifelse(head_occup %in% 
+                                       str_subset(head_occup, "fish"), "fishermen",
+                              ifelse(head_occup %in% 
+                                       str_subset(head_occup, c("helpers", 
+                                                                "cleaners",
+                                                                "launder")), "helpers",
+                              NA)))))))))
+
+fies.occup <- fies %>%
+  filter(is.na(fies$head_occup_class)) %>%
+  group_by(head_occup, head_workclass) %>%
+  summarise(n= n(),
+            income_mean = mean(income),
+            income_median = median(income)) %>%
+  arrange(head_workclass, desc(n))
+
+fies.occup
+
+fies <- subset(fies, head_occup == str_subset(fies$head_occup, "drivers")) %>% 
+  mutate(fies, head_occup_class = "drivers")
+str_subset(fies$head_occup, "drivers")
+head(fies)
+fies$head_occup_class <- NULL
+```
+
+
+```{r}
+ggplot(fies, aes(income)) +
+  geom_histogram() +
+  scale_x_continuous(
+                     trans = log10_trans(), 
+                     breaks = c(10000, 25000, 70000,
+                                150000, 400000, 
+                                1000000, 2000000)) +
+  facet_wrap( ~ head_occup_class)
+```
 
 
