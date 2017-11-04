@@ -2,6 +2,7 @@
 title: "Typical Filipino"
 output: 
   html_document:
+    keep_md: true
     theme: spacelab
     highlight: monochrome
     css: style.css
@@ -63,7 +64,7 @@ documented on a separate txt file for your reference.
 names(fies)
 ```
 
-```{r}
+```{r echo=FALSE}
 str(fies)
 ```
 
@@ -89,10 +90,22 @@ Doing a quick summary of the income, we see that the average income of each hous
 the super rich.
 
 
-```{r}
-ggplot(fies, aes(income)) +
+```{r message=FALSE, warning=TRUE}
+library(scales)
+set.seed(222)
+fies_sam <- fies[sample(nrow(fies), 10000), ]
+ggplot(fies_sam, aes(income)) +
   geom_histogram() +
-  scale_x_log10()
+  scale_x_continuous(trans = log10_trans(), breaks = c(10000, 25000, 70000, 150000,
+                                                       400000,
+                                                       1000000, 2000000))
 ```
+
+We transform the histogram to adjust the power of magnitude of each income and as a result
+we can see a beautiful normal distribution. This tells us that even though the distribution
+of the linear graph is long-tailed because of the ultra rich, the log scale allows us to
+see the underlying data that distribution of income is pretty normal and that it only
+differs on how much people are earning. And so this is why we the median is a better
+measure of center than the mean because the median is not heavily influenced by the outliers.
 
 
