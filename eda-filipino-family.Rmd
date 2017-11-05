@@ -67,25 +67,27 @@ names(fies)
 
 ## Income Distribution
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
 
 ggplot(fies, aes(income)) +
   geom_histogram()
 
 ```
+
 It comes to no surprise that income per household is skewed to the left, where there is more
 poor families and few rich people with dramatic outlying incomes.
 
 ```{r}
 summary(fies$income)
 ```
+
 Doing a quick summary of the income, we see that the average income of each household is
 247,556 Php annually. But this is skewed because of the maximum income of 11 mill Php of
 the super rich.
 
 
-```{r message=FALSE, warning=TRUE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(scales)
 set.seed(222)
 fies_sam <- fies[sample(nrow(fies), 10000), ]
@@ -107,9 +109,12 @@ measure of center than the mean because the median is not heavily influenced by 
 The Rich are really rich at 11 mill Php annual income and the Poor are really poor with
 only 11,285 Php but the average Filipino would roughly earn around 150,000 Php.
 
-```{r}
+This graph are showing averages and are not really telling a story. So, we facet the graph
+according to different groups or work classes.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 fies$head_occup <- factor(fies$head_occup)
-fies$head_workclass <-factor(fies$head_workclass)
+fies$head_workclass <- factor(fies$head_workclass)
 
 ggplot(fies, aes(income)) +
   geom_histogram() +
@@ -121,6 +126,8 @@ ggplot(fies, aes(income)) +
   facet_wrap(~ head_workclass)
 ```
 
+We facet the data according to the workclass defined by the survey but this is not really
+telling us anything especially that the catories are vague and are not familiar.
 
 
 ```{r}
@@ -166,9 +173,31 @@ fies.occup <- fies %>%
 
 fies.occup
 ```
+
+I decided to evaluate each occupation of the head of the family and manually 
+group each household according to the following working class:
+
+- *Professionals.* Jobs that usually requires higher education.
+- *Farmers.* Jobs that pertains to rural work. Agriculture, Fishing, Husbandry, etc.
+- *Workers.* Jobs that usually low paying. Does not require a full degree. Services.
+- *Government.* Jobs in government.
+- *Merchant.* Usually found in shops and general trading of goods.
+- *Artists.* Painters, Performers and anything to do with the arts.
+
+I am basing the categories based on my own classifications of how I see the working
+class and thier overall income.
+
+
 ```{r}
 tapply(fies$income, fies$head_occup_class, summary)
 
+```
+
+I review each working class and see what I can further refine. My goal is to
+segment as much as I can to emphasize the division among the working classes
+and at the same time being fair with my evaluation of the different jobs.
+
+```{r}
 fies.professionals <- fies %>%
   filter(fies$head_occup_class == "professionals") %>%
   group_by(head_occup) %>%
@@ -179,6 +208,9 @@ fies.professionals <- fies %>%
 
 fies.professionals
 ```
+
+I first took a look at the professional group, (aka upperclass), and I am satisfied
+on the searches.
 
 ```{r}
 fies.workers <- fies %>%
@@ -192,15 +224,33 @@ fies.workers
 subset(fies, income == 5652261)
 ```
 
+I then looked the worker class and noticed some interesting outliers in the group.
+The one that stood out is a Waiter job who is earning Php5,652,261 annually. This
+does not seem right to me and I took a deeper look and found our that income is the
+income including the businesses that they own and not the salaries of that occupation.
+This particular case, the Waiter was actually earning Php544,810 annually from his
+job and Php5,107,451 from his business.
 
 ```{r}
-ggplot(fies, aes(income)) +
+fies$inc_work <- with(fies, income - inc_entrep)
+
+head(table(sort(fies$inc_work)))
+
+```
+
+With revelation, I took it upon my self to add a new income value that is solely earned
+from the job of the head of the family. I took a summary to make sure that there is 
+no work income that is negative,
+
+```{r}
+ggplot(subset(fies, fies$inc_work != 0), aes(inc_work)) +
   geom_histogram() +
   scale_x_continuous(
                      trans = log10_trans(), 
                      breaks = c(10000, 25000, 70000,
                                 150000, 400000, 
-                                1000000, 2000000)) +
+                                1000000, 2000000),
+                     limits = c(135, 11639365)) +
   facet_wrap( ~ head_occup_class)
 ```
 
