@@ -10,22 +10,21 @@ output:
 
 # Introduction
 Filipinos are cheerful, resourceful and practical people. It is in our nature to make
-the best out a of a situation, no matter how hard it is, and still manage to smile
-while talking about it. We get this from our strong family values and religious beliefs.
-However, our ideals are not always represented in our actions specially when it comes
-to our financial priorities. I would always hear stories of parents working abroad for
-10 to 20 years and coming back to their families poorer than they were before they left.
+the best out a of any situation, no matter how hard it is. We get this from our strong 
+family values and religious beliefs. However, our ideals are not always represented in 
+our actions specially when it comes to our financial priorities. I would always hear 
+stories of parents working abroad for 10 to 20 years and coming back to their families 
+poorer than they were before they left.
 
 ## Objectives
-In this article, I would like to uncover the spending habits and financial priorities of
-a typical Filipino family and try to understand why Filipinos with good paying jobs 
-are still poor. 
+In this article, I would like to find out  if the spending habits and financial priorities 
+change as thier income increases of a typical Filipino family.
 
 ## Dataset Source
 This dataset is from The Philippine Statistics Authority who conducts the Family Income
 and Expediture Survey (FEIS) every 3 years nationwide. This is from the most recent 
 survey 2015. The raw data was cleaned by Francis Paul Flores from his
-[kaggle.com/grosvenpaul](https://www.kaggle.com/grosvenpaul/datasets).
+[kaggle.com/grosvenpaul](https://www.kaggle.com/grosvenpaul/family-income-and-expenditure/downloads/Family%20Income%20and%20Expenditure.csv).
 
 # Getting a Feel of the Data
 The Dataset contains 41,544 observations of Filipino Households from every Region of
@@ -55,10 +54,9 @@ names(fies) <- c("income", "region", "expense", "source",
                  "pc_n", "stove_n", "mboat_n", "mbike_n")
 ```
 
-There are 60 variables in this dataset and are not code friendly. First thing to do is
-rename each column key. In the interest of exploration, I will keep each column and 
-describe them as I go through this analysis. A detailed desciption of each column is 
-documented on a separate txt file for your reference.
+There are 60 variables in this dataset and are not code-friendly. First thing to do is
+rename each column key. A detailed desciption of each column is documented on a separate 
+txt file for your reference.
 
 ```{r}
 names(fies)
@@ -86,7 +84,6 @@ Doing a quick summary of the income, we see that the average income of each hous
 247,556 Php annually. But this is skewed because of the maximum income of 11 mill Php of
 the super rich.
 
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(scales)
 set.seed(222)
@@ -101,13 +98,11 @@ ggplot(fies_sam, aes(income)) +
 
 We transform the histogram to adjust the power of magnitude of each income and as a result
 we can see a beautiful normal distribution. This tells us that even though the distribution
-of the linear graph is long-tailed because of the ultra rich, the log scale allows us to
-see the underlying data that distribution of income is pretty normal and that it only
-differs on how much people are earning. And so this is why the median is a better
-measure of center than the mean because the median is not heavily influenced by the outliers.
+of the linear graph is long-tailed, the distribution of income is pretty normal and that it
+only differs on how much people are earning.
 
-The Rich are really rich at 11 mill Php annual income and the Poor are really poor with
-only 11,285 Php but the average Filipino would roughly earn around 150,000 Php.
+The Rich are really rich at 11 mill Php  and the Poor are really poor with only 11,285 Php 
+of annual income. The average Filipino would roughly earn around 150,000 Php.
 
 This graph are showing averages and are not really telling a story. So, we facet the graph
 according to different groups or work classes.
@@ -126,42 +121,53 @@ ggplot(fies, aes(income)) +
   facet_wrap(~ head_workclass)
 ```
 
-We facet the data according to the workclass defined by the survey but this is not really
-telling us anything especially that the catories are vague and are not familiar.
+But this is not really telling us anything especially that the categories are vague and 
+are not familiar. The needs a little bit of cleaning.
 
-
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(stringr)
 library(dplyr)
 
-professionals_class <- paste(c("manag", "medical", "dentist", "sales", "lawyer", "architect", "supervisor",
-                         "principals", "trade", "education", "chemist", "scientist", "justice", 
-                         "engineer", "director", "accountant", "secretaries", 
-                         "therapist", "opticians", "Veter"), collapse = "|")
+professionals_class <- paste(c("manag", "medical", "dentist", "lawyer", "architect",
+                               "supervisor", "trade", "education", "chemist",
+                               "scientist", "justice", "Mechanical engineers", "director", 
+                               "accountant", "Chemical engineers", "Electrical Engineers",
+                               "Industrial engineers",
+                               "therapist", "opticians", "Veter"),
+                             collapse = "|")
 
 farmer_class <- paste(c("farm", "fish", "growers", "gather", "raiser", "cultivat", 
-                        "plant", "hunter", "village"), collapse = "|")
+                        "plant", "hunter", "village", "practitioners", "healers"), 
+                      collapse = "|")
 
-worker_class <- paste(c("workers", "carpenters", "welder", "helper", "clean", "launder", "tailor", "labor", 
-                        "driver", "electr", "technician", "freight", "mason", "porter", "waiter", "cook", 
-                        "clerk", "operator", "mechanic", "foremen", "caretaker","lineman", "varnish", 
-                        "conductor", "bookkeeper", "transport", "inspector", "agent", "undertaker", 
-                        "insurance", "healers", "loggers", "wood", "roofers", "cutter", "assembler", 
-                        "builder", "metal", "assistant", "tanners", "garbage", "repair", "prepare", 
-                        "rigger", "practitioners"), collapse = "|")
+worker_class <- paste(c("workers", "carpenters", "welder", "helper", "clean", "launder",
+                        "labor", "driver", "freight",
+                        "mason", "porter", "waiter", "cook", "foremen", "caretaker", 
+                        "lineman", "varnish", "conductor",
+                        "bookkeeper", "inspector", "undertaker", 
+                        "loggers", "wood", "roofers", "cutter",
+                        "assembler", "builder", "metal",  "tanners", "garbage",
+                        "repair", "prepare", "rigger", "vendors"), 
+                      collapse = "|")
 
-merchant_class <- paste(c("vendors", "pawn", "buy", "baker", "maker"), collapse = "|")
-
-artist_class <- paste(c("designer", "artists", "singers", "television", "dancer", "fashion"), collapse = "|")
+office_class <- paste(c("pawn", "buy", "baker", "maker", "tailor", "assistant", "clerk",
+                        "sale", "engineering technicians", "agent", "insurance", "designer", 
+                        "artists", "General managers/managing proprietors",
+                        "singers", "television", "dancer", "fashion", "educ", "principals",
+                        "secretaries", "general"), 
+                        collapse = "|")
 
 fies$head_occup_class <- with(fies,
                               ifelse(str_detect(head_workclass, "government"), "government",
-                              ifelse(grepl(worker_class, head_occup, ignore.case = T), "workers",
-                              ifelse(grepl(professionals_class, head_occup, ignore.case = T), "professionals",
-                              ifelse(grepl(farmer_class, head_occup, ignore.case = T), "farmers",
-                              ifelse(grepl(merchant_class, head_occup, ignore.case = T), "merchant",
-                              ifelse(grepl(artist_class, head_occup, ignore.case = T), "arts",
-                              NA)))))))
+                              ifelse(grepl(worker_class, head_occup, ignore.case = T),
+                                     "workers",
+                              ifelse(grepl(professionals_class, head_occup, ignore.case = T),
+                                     "professionals",
+                              ifelse(grepl(farmer_class, head_occup, ignore.case = T),
+                                     "farmers",
+                              ifelse(grepl(office_class, head_occup, ignore.case = T),
+                                     "office",
+                              NA))))))
 
 fies.occup <- fies %>%
   filter(is.na(fies$head_occup_class)) %>%
@@ -181,16 +187,14 @@ group each household according to the following working class:
 - *Farmers.* Jobs that pertains to rural work. Agriculture, Fishing, Husbandry, etc.
 - *Workers.* Jobs that usually low paying. Does not require a full degree. Services.
 - *Government.* Jobs in government.
-- *Merchant.* Usually found in shops and general trading of goods.
-- *Artists.* Painters, Performers and anything to do with the arts.
+- *Office* Usually found in shops and offices of goods.
 
 I am basing the categories based on my own classifications of how I see the working
-class and thier overall income.
+class and their overall mean income of each working class.
 
 
 ```{r}
-tapply(fies$income, fies$head_occup_class, summary)
-
+tapply(fies$inc_work, fies$head_occup_class, summary)
 ```
 
 I review each working class and see what I can further refine. My goal is to
@@ -209,10 +213,21 @@ fies.professionals <- fies %>%
 fies.professionals
 ```
 
-I first took a look at the professional group, (aka upperclass), and I am satisfied
-on the searches.
-
 ```{r}
+fies.workers <- fies %>%
+  filter(fies$head_occup_class == "workers") %>%
+  group_by(head_occup) %>%
+  summarise(income_mean = mean(income),
+            income_median = median(income),
+            n= n()) %>%
+  arrange(desc(income_mean))
+
+fies.workers
+```
+
+I took a look at the professional group, (aka upperclass), and I am satisfied on the searches.
+
+```{r message=FALSE, warning=FALSE}
 fies.workers <- fies %>%
   filter(fies$head_occup_class == "workers") %>%
   group_by(head_occup) %>%
@@ -224,12 +239,12 @@ fies.workers
 subset(fies, income == 5652261)
 ```
 
-I then looked the worker class and noticed some interesting outliers in the group.
+I then checked the worker class and noticed some interesting outliers in the group.
 The one that stood out is a Waiter job who is earning Php5,652,261 annually. This
-does not seem right to me and I took a deeper look and found our that income is the
+does not seem right to me and I took a deeper look and found out that income is the
 income including the businesses that they own and not the salaries of that occupation.
-This particular case, the Waiter was actually earning Php544,810 annually from his
-job and Php5,107,451 from his business.
+Subtracting the income from business from the total income, the Waiter was actually 
+earning Php544,810 annually from his job and Php5,107,451 from his business.
 
 ```{r}
 fies$inc_work <- with(fies, income - inc_entrep)
@@ -238,9 +253,8 @@ head(table(sort(fies$inc_work)))
 
 ```
 
-With revelation, I took it upon my self to add a new income value that is solely earned
-from the job of the head of the family. I took a summary to make sure that there is 
-no work income that is negative,
+Once I knew this, I added a column for income from their jobs. I took a summary to make 
+sure that there is no work income that is negative,
 
 ```{r}
 ggplot(subset(fies, fies$inc_work != 0), aes(inc_work)) +
@@ -252,11 +266,5 @@ ggplot(subset(fies, fies$inc_work != 0), aes(inc_work)) +
                                 1000000, 2000000),
                      limits = c(135, 11639365)) +
   facet_wrap( ~ head_occup_class)
-```
-
-```{r}
-ggplot(fies, aes(income)) +
-  geom_histogram() +
-  facet_wrap(~ head_educ)
 ```
 
