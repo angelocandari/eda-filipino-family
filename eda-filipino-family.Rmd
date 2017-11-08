@@ -128,12 +128,15 @@ are not familiar. The needs a little bit of cleaning.
 library(stringr)
 library(dplyr)
 
-professionals_class <- paste(c("manag", "medical", "dentist", "lawyer", "architect",
-                               "supervisor", "trade", "education", "chemist",
+professionals_class <- paste(c("managers", "medical", "dentist", "lawyer", "architect",
+                               "supervisor", "trade", "education", "chemist", "professionals",
                                "scientist", "justice", "Mechanical engineers", "director", 
                                "accountant", "Chemical engineers", "Electrical Engineers",
-                               "Industrial engineers",
-                               "therapist", "opticians", "Veter"),
+                               "Industrial engineers", "designer", "singers", "television", 
+                               "dancer", "fashion", "marketing", "Civil engineers", "air",
+                               "Computer programmers", "nurse", "Librarians", "science",
+                               "therapist", "opticians", "Veter", "pilots", "estate agents",
+                               "plant operators"),
                              collapse = "|")
 
 farmer_class <- paste(c("farm", "fish", "growers", "gather", "raiser", "cultivat", 
@@ -141,41 +144,40 @@ farmer_class <- paste(c("farm", "fish", "growers", "gather", "raiser", "cultivat
                       collapse = "|")
 
 worker_class <- paste(c("workers", "carpenters", "welder", "helper", "clean", "launder",
-                        "labor", "driver", "freight",
+                        "labor", "driver", "freight", "mechanics",
                         "mason", "porter", "waiter", "cook", "foremen", "caretaker", 
-                        "lineman", "varnish", "conductor",
+                        "lineman", "varnish", "conductor", "salesperson",
                         "bookkeeper", "inspector", "undertaker", 
-                        "loggers", "wood", "roofers", "cutter",
+                        "loggers", "wood", "roofers", "cutter", "electricians",
                         "assembler", "builder", "metal",  "tanners", "garbage",
                         "repair", "prepare", "rigger", "vendors"), 
                       collapse = "|")
 
 office_class <- paste(c("pawn", "buy", "baker", "maker", "tailor", "assistant", "clerk",
-                        "sale", "engineering technicians", "agent", "insurance", "designer", 
-                        "artists", "General managers/managing proprietors",
-                        "singers", "television", "dancer", "fashion", "educ", "principals",
-                        "secretaries", "general"), 
+                        "engineering technicians", "operators",
+                        "artists", "managers/managing proprietors",
+                        "educ", "principals", "secretaries", "general"), 
                         collapse = "|")
 
 fies$head_occup_class <- with(fies,
                               ifelse(str_detect(head_workclass, "government"), "government",
                               ifelse(grepl(worker_class, head_occup, ignore.case = T),
                                      "workers",
+                              ifelse(grepl(office_class, head_occup, ignore.case = T),
+                                     "office",
                               ifelse(grepl(professionals_class, head_occup, ignore.case = T),
                                      "professionals",
                               ifelse(grepl(farmer_class, head_occup, ignore.case = T),
                                      "farmers",
-                              ifelse(grepl(office_class, head_occup, ignore.case = T),
-                                     "office",
                               NA))))))
 
 fies.occup <- fies %>%
   filter(is.na(fies$head_occup_class)) %>%
-  group_by(head_occup, head_workclass) %>%
+  group_by(head_occup) %>%
   summarise(n= n(),
             income_mean = mean(income),
             income_median = median(income)) %>%
-  arrange(desc(n), head_workclass)
+  arrange(desc(n))
 
 fies.occup
 ```
@@ -194,38 +196,12 @@ class and their overall mean income of each working class.
 
 
 ```{r}
-tapply(fies$inc_work, fies$head_occup_class, summary)
+tapply(fies$income, fies$head_occup_class, summary)
 ```
 
 I review each working class and see what I can further refine. My goal is to
 segment as much as I can to emphasize the division among the working classes
 and at the same time being fair with my evaluation of the different jobs.
-
-```{r}
-fies.professionals <- fies %>%
-  filter(fies$head_occup_class == "professionals") %>%
-  group_by(head_occup) %>%
-  summarise(income_mean = mean(income),
-            income_median = median(income),
-            n= n()) %>%
-  arrange(desc(income_mean))
-
-fies.professionals
-```
-
-```{r}
-fies.workers <- fies %>%
-  filter(fies$head_occup_class == "workers") %>%
-  group_by(head_occup) %>%
-  summarise(income_mean = mean(income),
-            income_median = median(income),
-            n= n()) %>%
-  arrange(desc(income_mean))
-
-fies.workers
-```
-
-I took a look at the professional group, (aka upperclass), and I am satisfied on the searches.
 
 ```{r message=FALSE, warning=FALSE}
 fies.workers <- fies %>%
@@ -250,21 +226,101 @@ earning Php544,810 annually from his job and Php5,107,451 from his business.
 fies$inc_work <- with(fies, income - inc_entrep)
 
 head(table(sort(fies$inc_work)))
-
 ```
+
+```{r}
+tapply(fies$inc_work, fies$head_occup_class, summary)
+```
+
+```{r}
+fies.professionals <- fies %>%
+  filter(fies$head_occup_class == "professionals") %>%
+  group_by(head_occup) %>%
+  summarise(income_mean = mean(inc_work),
+            income_median = median(inc_work),
+            n= n()) %>%
+  arrange(desc(income_mean))
+
+fies.professionals
+```
+
+```{r}
+fies.office <- fies %>%
+  filter(fies$head_occup_class == "office") %>%
+  group_by(head_occup) %>%
+  summarise(income_mean = mean(inc_work),
+            income_median = median(inc_work),
+            n= n()) %>%
+  arrange(desc(income_mean))
+
+fies.office
+```
+
+```{r}
+fies.occup <- fies %>%
+  filter(is.na(fies$head_occup_class)) %>%
+  group_by(head_occup) %>%
+  summarise(n= n(),
+            income_mean = mean(inc_work),
+            income_median = median(inc_work)) %>%
+  arrange(desc(n), desc(income_median))
+
+fies.occup
+```
+
+I reviewed the professionals group according to income from work and found that General
+Managers are getting below average income from salaries. 
 
 Once I knew this, I added a column for income from their jobs. I took a summary to make 
 sure that there is no work income that is negative,
 
 ```{r}
-ggplot(subset(fies, fies$inc_work != 0), aes(inc_work)) +
-  geom_histogram() +
+ggplot(subset(fies, inc_work != 0 & 
+                !is.na(head_occup_class)), 
+       aes(inc_work)) +
+  geom_histogram(col=I("white")) +
   scale_x_continuous(
                      trans = log10_trans(), 
                      breaks = c(10000, 25000, 70000,
-                                150000, 400000, 
-                                1000000, 2000000),
-                     limits = c(135, 11639365)) +
-  facet_wrap( ~ head_occup_class)
+                                200000, 
+                                500000, 2000000),
+                     limits = c(2000, 2500000)) +
+  facet_wrap( ~ head_occup_class, ncol = 2)
+
+#summary(fies$inc_work)
+
 ```
 
+We plot the new organized data according to their respective categories. We can see that
+professionals are far to the left with a smaller frequncy. Worker class would have the 
+greater count and has a mean closer to the population mean. 
+
+```{r}
+fies$head_occup_class <- factor(fies$head_occup_class)
+fies$head_occup_class <- ordered(fies$head_occup_class, 
+                                 levels = c("professionals", "government", 
+                                            "office", "farmers", "workers"))
+
+ggplot(subset(fies, !is.na(head_occup_class)), aes(head_occup_class)) +
+  geom_bar()
+```
+
+We take another look at the population of our dataset and we see that workers are the most
+followed by the farmers, office, government and the least count are the professionals.
+
+```{r}
+ggplot(subset(fies, fies$inc_entrep != 0 & 
+                !is.na(head_occup_class)), 
+       aes(inc_entrep)) +
+  geom_histogram(col=I("white")) +
+  scale_x_continuous(
+                     trans = log10_trans(), 
+                     breaks = c(10000, 25000, 70000,
+                                200000, 
+                                500000, 2000000),
+                     limits = c(2000, 2500000)) +
+  facet_wrap( ~ head_occup_class, ncol = 2)
+
+#summary(fies$inc_work)
+
+```
