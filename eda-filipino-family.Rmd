@@ -6,7 +6,6 @@ output:
     theme: spacelab
     highlight: monochrome
     css: style.css
-  html_notebook: 
 ---
 
 # Introduction
@@ -37,6 +36,10 @@ library(readr)
 
 fies <- read_csv("fies.csv")
 
+names(fies)
+```
+
+```{r}
 # Rename Lables for easier reference.
 names(fies) <- c("income", "region", "expense", "source", 
                  "agri_house", "exp_bread", "exp_rice", "exp_meat", 
@@ -65,7 +68,7 @@ names(fies)
 
 ## Income Distribution
 
-```{r Income_distribution echo=FALSE, message=FALSE, warning=FALSE}
+```{r Income_distribution, echo=FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
 
 ggplot(fies, aes(income)) +
@@ -73,8 +76,8 @@ ggplot(fies, aes(income)) +
 
 ```
 
-It's no surprise that income per household is skewed to the left, where there is
-more poor families and few rich people with dramatic outlying incomes.
+It's no surprise that income per household is skewed to the left, where there
+is more poor families and few rich people with dramatic outlying incomes.
 
 ```{r Income_summary}
 summary(fies$income)
@@ -103,16 +106,16 @@ ggplot(fies_sam, aes(income)) +
 ```
 
 We transform the histogram to adjust the power of magnitude of each income and
-as a result we can see a beautiful normal distribution. To understand why we use
-log10, imagine that we made the x axis points closer together so that we can see
-see the distribution more clearly.
+as a result we can see a beautiful normal distribution. To understand why we
+use log10, imagine that we made the x axis points closer together so that we
+can see see the distribution more clearly.
 
 The problem with relying on averages is that it is heavily influenced by 
-outliers. Php 247,556 in the graph is far from the center, which makes it a poor 
-representative of the distribution.
+outliers. Php 247,556 in the graph is far from the center, which makes it a
+poor representative of the distribution.
 
-The Rich are really rich at 11 mill Php  and the Poor are really poor with only 
-11,285 Php of annual income.
+The Rich are really rich at 11 mill Php  and the Poor are really poor with 
+only 11,285 Php of annual income.
 
 In addition, this average is of the whole population. We can't do that because,
 for some people, 247k is small while other it is very big. So, we facet the 
@@ -135,8 +138,8 @@ ggplot(fies, aes(income)) +
 ```
 
 In this graph, we use the work class determined by the survey. But this is not 
-really telling us anything especially that the categories are vague and are not 
-familiar. The needs a little bit of cleaning.
+really telling us anything especially that the categories are vague and are 
+not familiar. The needs a little bit of cleaning.
 
 ## We make our own Groups
 
@@ -237,7 +240,7 @@ I review each working class and see what I can further refine. My goal is to
 segment as much as I can to emphasize the division among the working classes
 and at the same time being fair with my evaluation of the different jobs.
 
-```{r Reveiw_workerClass, message=FALSE, warning=FALSE, paged.print=TRUE}
+```{r Reveiw_workerClass, message=FALSE, warning=FALSE}
 fies.workers <- fies %>%
   filter(fies$head_class == "work") %>%
   select(head_occup, income, inc_entrep) %>%
@@ -316,6 +319,18 @@ fies.farm
 
 ## See what happens when you just Average
 
+```{r}
+fies$head_class <- factor(fies$head_class, 
+                          levels = c("pro", "gov", "off", "farm", "work"),
+                          ordered = T)
+
+ggplot(subset(fies, !is.na(head_class)), aes(head_class)) +
+  geom_bar()
+```
+
+In our dataset, we generally have more workers than any of the other classes.
+Professionals are the minority of the group.
+
 ```{r incomeDistributionbyCustomClass, message=FALSE, warning=FALSE}
 ggplot(subset(fies, income != 0 & 
                 !is.na(head_class)), 
@@ -384,8 +399,8 @@ ggplot(subset(fies, inc_entrep != 0 &
 ```
 
 If people relied solely on income from their business, all of them are below
-the Average line of the overall income population. This goes to show that
-majority of Filipinos have higher income from Salaries than from business.
+the Average line of the overall income population. This shows that majority of
+Filipinos have higher income from Salaries than from business.
 
 ## View from BoxPlots
 
@@ -401,14 +416,15 @@ ggplot(subset(fies, !is.na(head_class)), aes(head_class, inc_entrep)) +
   coord_cartesian(ylim = c(0, quantile(fies$inc_entrep, .92)))
 ```
 
-Both graphs shows that professionals are heavily dependent on the salaries from
+Both graphs shows that professionals are heavily dependent on salaries from
 their professions as their main source of income. While most groups would treat
 treat their business as a secondary source of income, office employees and
-farmers would seem to have more profitable business than the rest of the groups.
+farmers would seem to have more profitable business than the rest of the
+groups.
 
-But this is not clear because we are mixing households that rely both salaries
-and business with people who are soley relient on either their salaries or their
-business.
+But this is not clear because we are mixing households that rely on salaries
+and business alone with people who are soley relient on either their salaries 
+or their business.
 
 ## Comparing Source of Income in One Graph
 
@@ -428,10 +444,10 @@ fies.n
 ```
 
 We would like to compare work income from business income to find out the
-relationship. We transform the databale from wide format to long format so that
+relationship. We transform the data from wide format to long format so that
 we can graph the data in a frequency polygon.
 
-```{r message=FALSE, warning=FALSE}
+```{r salaryVsBusiness, message=FALSE, warning=FALSE}
 ggplot(fies.n, aes(inc, color = inc_type)) +
   geom_freqpoly(alpha =.5) +
   scale_x_continuous(trans = log10_trans(), 
@@ -443,36 +459,83 @@ ggplot(fies.n, aes(inc, color = inc_type)) +
 ```
 
 Placing the graphs on a frequency polygon, we see that farmers have both their
-salaries from business income at almost similar distribution. Office Employees
-have income from Salaries higher than their business income. While workers
-would have a distribution that have a higher income from Salaries and income
-from business more spread out. Government employees and Professionals does not
-have a clear relationship between income from salaries business.
+salaries from business income at almost similar distribution with their salary
+income. Office Employees have income from Salaries higher than their business
+income. While workers would have a distribution that have a higher income from
+Salaries and income from business more spread out. Government employees and
+Professionals does not have a clear relationship between income from salaries
+business.
 
-## Let's Look at Ratios
-
-At this stage, I am just graphing everythin up and their is still this
-underlying question that how much of this distribution have only salaries, 
-only business or both as their source of income. Let's look at the ratios and
-see.
+## Returning to our Question
 
 ```{r}
-fies.w <- fies %>%
-  filter(!is.na(head_class)) %>%
-  filter(inc_entrep != 0 & inc_work != 0) %>%
-  select(id, head_age, head_class, income, inc_entrep, inc_work, expense) %>%
-  mutate(inc_ratio = inc_work / inc_entrep,
-         incExp_ratio = income / expense) +
-  arrange(desc(inc_ratio))
-
-summary(fies.w$inc_ratio)
+ggplot(fies.w, aes(income, expense)) +
+  geom_point(alpha = .2) +
+  scale_x_continuous(limits = c(0, quantile(fies$income, .98))) +
+  scale_y_continuous(limits = c(0, quantile(fies$expense, .98)))
 ```
 
+We want to relate expense with their income and if we graph the relationship,
+we see that as income increase, so does their expenses, which is obvious.
+
 ```{r}
-ggplot(fies.w, aes(inc_ratio)) +
-  geom_histogram() +
-  scale_x_continuous(trans = log10_trans(), 
-                     breaks = c(1, 2, 3, 4, 6),
-                     limits = c(.01, 1000)) +
+ggplot(fies.w, aes(income, expense, color = head_class)) +
+  geom_point(alpha = .2) +
+  scale_x_continuous(limits = c(0, quantile(fies$income, .98))) +
+  scale_y_continuous(limits = c(0, quantile(fies$expense, .98))) +
+  scale_color_brewer(type = "div")
+```
+
+If we look at the same graph but this time color-coded according to our custom
+class, we see better which types of proffesions are having higher incomes. But
+this is not really clear.
+
+```{r}
+ggplot(fies.w, aes(income, expense, color = head_class)) +
+  geom_point(alpha = .2) +
+  scale_x_continuous(limits = c(0, quantile(fies$income, .98))) +
+  scale_y_continuous(limits = c(0, quantile(fies$expense, .98))) +
   facet_wrap(~head_class)
 ```
+ 
+ Splitting the graphs in a facet, it seems that all classes are resembling the
+ same pattern where the more income they have the higher they would spend. This
+ does not tell us anything new. And I get to thinking, what are they actually
+ spending on? To answer that, we look at our available variables and see.
+ 
+```{r}
+names(fies)
+head(fies)
+```
+
+```{r}
+fies.w.exp <- fies %>%
+  filter(!is.na(head_class)) %>%
+  mutate(exp_food = exp_bread + exp_rice + exp_meat + 
+           exp_seafood + exp_fruit + exp_veg,
+         exp_lux = exp_resto_hotel + exp_spec + exp_comms + exp_clothe,
+         exp_vice = exp_alcoh + exp_taba,
+         exp_util = exp_house_water + exp_rent) %>%
+  gather(exp_type, exp_v, c(exp_food, exp_lux, exp_vice, exp_util,
+                            exp_med,
+                            exp_trans,
+                            exp_edu,
+                            exp_farm,
+                            exp_misc)) %>%
+  arrange(id, exp_type)
+
+names(fies.w.exp)
+fies.w.exp$exp_type <- factor(fies.w.exp$exp_type)
+levels(fies.w.exp$exp_type)
+summary(fies.w.exp)
+fies.w.exp
+```
+
+```{r}
+ggplot(fies.w.exp, aes(income, expense, color = exp_type)) +
+  geom_point(alpha = .2) +
+  scale_x_continuous(limits = c(0, quantile(fies$income, .98))) +
+  scale_y_continuous(limits = c(0, quantile(fies$expense, .98))) +
+  facet_wrap(~head_class)
+```
+
