@@ -39,7 +39,7 @@ fies <- read_csv("fies.csv")
 names(fies)
 ```
 
-```{r}
+```{r renameCols}
 # Rename Lables for easier reference.
 names(fies) <- c("income", "region", "expense", "source", 
                  "agri_house", "exp_bread", "exp_rice", "exp_meat", 
@@ -56,19 +56,17 @@ names(fies) <- c("income", "region", "expense", "source",
                  "DVD_n", "sterio_n", "ref_n", "wash_n", 
                  "aircon_n", "car_n", "tel_n", "cell_n",
                  "pc_n", "stove_n", "mboat_n", "mbike_n")
+
+names(fies)
 ```
 
 There are 60 variables in this dataset and are not code-friendly. First thing 
 to do is rename each column key. A detailed desciption of each column is 
 documented on a separate txt file for your reference.
 
-```{r Rename_colss}
-names(fies)
-```
-
 ## Income Distribution
 
-```{r Income_distribution, echo=FALSE, message=FALSE, warning=FALSE}
+```{r incomeDistribution, message=FALSE, warning=FALSE}
 library(ggplot2)
 
 ggplot(fies, aes(income)) +
@@ -79,7 +77,7 @@ ggplot(fies, aes(income)) +
 It's no surprise that income per household is skewed to the left, where there
 is more poor families and few rich people with dramatic outlying incomes.
 
-```{r Income_summary}
+```{r incomeSummary}
 summary(fies$income)
 ```
 
@@ -89,7 +87,7 @@ income of 11 mill Php of the super rich.
 
 ## Averaging Everything is just Lazy
 
-```{r Income_log10, echo=FALSE, message=FALSE, warning=FALSE}
+```{r incomeLog10, echo=FALSE, message=FALSE, warning=FALSE}
 library(scales)
 set.seed(222)
 fies_sam <- fies[sample(nrow(fies), 10000), ]
@@ -123,7 +121,7 @@ graph according to different groups or work classes.
 
 ## Grouped by Working Class according to Survey
 
-```{r GroupBy_workclass,echo=FALSE, message=FALSE, warning=FALSE}
+```{r groupByWorkclass, message=FALSE, warning=FALSE}
 fies$head_occup <- factor(fies$head_occup)
 fies$head_workclass <- factor(fies$head_workclass)
 
@@ -143,7 +141,7 @@ not familiar. The needs a little bit of cleaning.
 
 ## We make our own Groups
 
-```{r Groupby_CustomClass, message=FALSE, warning=FALSE}
+```{r groupByCustomClass, message=FALSE, warning=FALSE}
 library(stringr)
 library(dplyr)
 
@@ -230,7 +228,7 @@ I am basing the categories based on my own classifications of how I see the
 working class and their overall mean income. I am ignoring the households
 that did not specify the occupation of the head of the family.
 
-```{r Summary_customClass }
+```{r summaryCustomClass }
 tapply(fies$income, fies$head_class, summary)
 ```
 
@@ -240,7 +238,7 @@ I review each working class and see what I can further refine. My goal is to
 segment as much as I can to emphasize the division among the working classes
 and at the same time being fair with my evaluation of the different jobs.
 
-```{r Reveiw_workerClass, message=FALSE, warning=FALSE}
+```{r reveiwWorkerClass, message=FALSE, warning=FALSE}
 fies.workers <- fies %>%
   filter(fies$head_class == "work") %>%
   select(head_occup, income, inc_entrep) %>%
@@ -249,7 +247,7 @@ fies.workers <- fies %>%
 fies.workers
 ```
 
-```{r Finding_waiterOutlier, message=FALSE, warning=FALSE}
+```{r findingWaiterOutlier, message=FALSE, warning=FALSE}
 subset(fies.workers, income == "5652261")
 ```
 
@@ -264,7 +262,7 @@ business. For Analysis, we would like to see the income from their employment.
 
 ## We just want the Income from their Jobs
 
-```{r add_incomeFromWork}
+```{r addIncomeFromWork}
 fies$inc_work <- with(fies, income - inc_entrep)
 
 # Check if there are no negative income from work.
@@ -305,7 +303,7 @@ fies.office
 
 ## Reviewing the Farmers
 
-```{r review_farmer, message=FALSE, warning=FALSE}
+```{r reviewFarmer, message=FALSE, warning=FALSE}
 fies.farm <- fies %>%
   filter(fies$head_class == "farm") %>%
   group_by(head_occup) %>%
@@ -319,7 +317,7 @@ fies.farm
 
 ## See what happens when you just Average
 
-```{r}
+```{r countWorkclass}
 fies$head_class <- factor(fies$head_class, 
                           levels = c("pro", "gov", "off", "farm", "work"),
                           ordered = T)
@@ -331,7 +329,7 @@ ggplot(subset(fies, !is.na(head_class)), aes(head_class)) +
 In our dataset, we generally have more workers than any of the other classes.
 Professionals are the minority of the group.
 
-```{r incomeDistributionbyCustomClass, message=FALSE, warning=FALSE}
+```{r incomeDistributionByCustomClass, message=FALSE, warning=FALSE}
 ggplot(subset(fies, income != 0 & 
                 !is.na(head_class)), 
        aes(income)) +
@@ -469,6 +467,13 @@ business.
 ## Returning to our Question
 
 ```{r}
+fies.w <- fies %>%
+  filter(!is.na(head_class)) %>%
+  select(id, head_class, income, expense)
+```
+
+
+```{r}
 ggplot(fies.w, aes(income, expense)) +
   geom_point(alpha = .2) +
   scale_x_continuous(limits = c(0, quantile(fies$income, .98))) +
@@ -491,7 +496,7 @@ class, we see better which types of proffesions are having higher incomes. But
 this is not really clear.
 
 ```{r}
-ggplot(fies.w, aes(income, expense, color = head_class)) +
+ggplot(fies, aes(income, expense, color = head_class)) +
   geom_point(alpha = .2) +
   scale_x_continuous(limits = c(0, quantile(fies$income, .98))) +
   scale_y_continuous(limits = c(0, quantile(fies$expense, .98))) +
@@ -511,18 +516,16 @@ head(fies)
 ```{r}
 fies.w.exp <- fies %>%
   filter(!is.na(head_class)) %>%
-  mutate(exp_food = exp_bread + exp_rice + exp_meat + 
+  mutate(exp_food = exp_bread + exp_rice + exp_meat +
            exp_seafood + exp_fruit + exp_veg,
-         exp_lux = exp_resto_hotel + exp_spec + exp_comms + exp_clothe,
+         exp_lux = exp_resto_hotel + exp_spec + exp_clothe,
          exp_vice = exp_alcoh + exp_taba,
-         exp_util = exp_house_water + exp_rent) %>%
-  gather(exp_type, exp_v, c(exp_food, exp_lux, exp_vice, exp_util,
-                            exp_med,
-                            exp_trans,
-                            exp_edu,
-                            exp_farm,
-                            exp_misc)) %>%
-  arrange(id, exp_type)
+         exp_util = exp_house_water + exp_rent + exp_comms + exp_trans +
+           exp_misc) %>%
+  gather(cashflow, cash, c(exp_food, exp_lux, exp_vice, exp_util,
+                           exp_med, exp_edu, exp_farm)) %>%
+  select(id, head_class, income, expense, cashflow, cash) %>%
+  arrange(id)
 
 names(fies.w.exp)
 fies.w.exp$exp_type <- factor(fies.w.exp$exp_type)
@@ -532,10 +535,20 @@ fies.w.exp
 ```
 
 ```{r}
-ggplot(fies.w.exp, aes(income, expense, color = exp_type)) +
+ggplot(fies.w.exp, aes(x = income, color = cashflow, fill = cashflow)) +
+  geom_density() +
+  scale_x_continuous(trans = log10_trans())
+
+
+```
+
+```{r}
+ggplot(fies.w.exp, aes(income, cash, color = head_class)) +
   geom_point(alpha = .2) +
-  scale_x_continuous(limits = c(0, quantile(fies$income, .98))) +
-  scale_y_continuous(limits = c(0, quantile(fies$expense, .98))) +
-  facet_wrap(~head_class)
+  scale_x_continuous(trans = log10_trans()) +
+  scale_y_continuous(trans = log10_trans(),
+    limits = c(10000, quantile(fies.w.exp$cash, .98))) +
+  facet_wrap(~cashflow)
+
 ```
 
