@@ -9,10 +9,10 @@ output:
 ---
 
 # Introduction
-Filipinos are hard working people but at the same time careless with their finances. It may seem odd that two contradicting behavours exists in people. But, in the reality of things, they are slaves to their own traditions and social norms. One person would rather not eat for days just so that they could save enough money to buy an expensive bag. Or a whole year's savings could be spent over a weekend. Some would even complain of not having enough to buy a meal but would still be able to buy a pack of cigarettes.
+Filipinos are hard working people but at the same time careless with their finances. It may seem odd that two contradicting behavours exists in a people. But, in the reality, they are slaves to their own traditions and social norms. One person would rather not eat for days just so that they could save enough money to buy an expensive bag. Or a whole year's savings could be spent over a weekend. Some would even complain of not having enough to buy a meal but would still be able to buy a pack of cigarettes.
 
 ## Objectives
-In this article, I would like to know how Filipinos spend their money.
+In this article, I would like to know how Filipinos spend their money in relation to their income.
 
 ## Dataset Source
 This dataset is from The Philippine Statistics Authority who conducts the 
@@ -67,7 +67,7 @@ ggplot(fies, aes(income)) +
 
 ```
 
-There are lot of low-income and few high-income households that would make the graph skew to the left.
+There are lot of low-income and few high-income households that would make the graph skew to the left and stretch out to the right.
 
 ```{r incomeSummary}
 summary(fies$income)
@@ -95,7 +95,7 @@ ggplot(fies, aes(income)) +
              color = I("red"))
 ```
 
-I wanted to see where this average exist in our distribution. Since the distribution is skewed by the large disparity in income, we transform the a histogram by log base 10. Think of it like we bring the incomes bins closer together to get a better view on the distribution.
+I wanted to see where this average exist in our distribution. Since the distribution is skewed by the large disparity in income, we transform the a histogram by log base 10. Think of it like we bringing the incomes bins closer together to get a better view on the distribution.
 
 In the histogram. we find the average and mark in in a red line. We see that the average is slightly on the right side from the center. This tells us that the average is not the best representation to describe the whole distribution. In otherwords, 247k Php annual income is really high for most average Filipinos.
 
@@ -242,8 +242,6 @@ head(table(sort(fies$inc_work)))
 tapply(fies$inc_work, fies$head_class, summary)
 ```
 
-## Reveiwing the Professionals
-
 ```{r reviewProfessionals, message=FALSE, warning=FALSE}
 fies.pro <- fies %>%
   filter(fies$head_class == "pro") %>%
@@ -256,8 +254,6 @@ fies.pro <- fies %>%
 fies.pro
 ```
 
-## Reviewing the Office Employees
-
 ```{r reviewOffice, message=FALSE, warning=FALSE}
 fies.office <- fies %>%
   filter(fies$head_class == "off") %>%
@@ -269,8 +265,6 @@ fies.office <- fies %>%
 
 fies.office
 ```
-
-## Reviewing the Farmers
 
 ```{r reviewFarmer, message=FALSE, warning=FALSE}
 fies.farm <- fies %>%
@@ -296,7 +290,7 @@ ggplot(subset(fies, !is.na(head_class)), aes(head_class)) +
 In our dataset, we generally have more workers than any of the other classes.
 Professionals are the minority of the group.
 
-## Looking at the Average with the Custom Working Class
+## Income Source
 
 ```{r incomeDistributionByCustomClass, message=FALSE, warning=FALSE}
 ggplot(subset(fies, income != 0 & 
@@ -317,8 +311,6 @@ ggplot(subset(fies, income != 0 &
 We go back to the overall income distribution but this time using our custom
 work class. We add the average income Php247k and we see that some groups
 are below the average line and other groups are above the average line.
-
-## Income from Salaries
 
 ```{r incomeFromSalaries, message=FALSE, warning=FALSE}
 # We remove the households that does not specify occupation.
@@ -341,8 +333,6 @@ ggplot(subset(fies, inc_work != 0 &
 ```
 
 If people relied from their salaries, the picture would generally look the same except for the office and workers, where salaries are more spread out to the left.
-
-## Income from Business
 
 ```{r expenseByCustomClass, message=FALSE, warning=FALSE}
 ggplot(subset(fies, inc_entrep != 0 & 
@@ -367,8 +357,6 @@ If people relied solely on income from their business, all of them are below
 the Average line of the overall income population. 
 
 These grouped histograms shows that Filipinos who works in offices and workers would commonly rely mostly from their salaries but would still have income from private business that would support their overall income.
-
-## View from BoxPlots
 
 ```{r boxplotsIncomeSalaries}
 ggplot(subset(fies, !is.na(head_class)), aes(head_class, inc_work)) +
@@ -434,16 +422,16 @@ fies.dual
 length(unique(fies.dual$id))
 ```
 
-Out of the total 41,544 households, 23,897 have 2 sources of income. We extract these observations and mold the data to enable us to see the where these income are coming from according to our work class.
+Out of the total 41,544 households, 23,897 have 2 sources of income. We extract these observations and mold the data to enable us to see where these income are coming from according to our work class.
 
 ```{r}
-ggplot(fies.dual, aes(head_class, prop, color = inc_type)) +
+ggplot(fies.dual, aes(head_class, prop, fill = inc_type)) +
   geom_boxplot()
 ```
 
 Households who have 2 sources income would rely more on their salary than they would their business. This is more so for Professionals, Government and Workers where they would get 75% of their income from their salary. While Office and Farmers would have their Business income producing at almost the same level from their Salary income.
 
-## Returning to our Question
+## Spending Habits
 
 ```{r}
 fies.w <- fies %>%
@@ -514,42 +502,35 @@ names(fies)
 head(fies)
 ```
 
+I just realized that the *expense* is the total expense of food and not the total expense overall. The above graphs in this section are wrong. I correct this by adding all expenses under *expense_total*.
+
 ```{r}
 fies.w.exp <- fies %>%
   filter(!is.na(head_class)) %>%
-  mutate(exp_food = exp_bread + exp_rice + exp_meat +
-           exp_seafood + exp_fruit + exp_veg,
-         exp_lux = exp_resto_hotel + exp_spec + exp_clothe,
-         exp_vice = exp_alcoh + exp_taba,
-         exp_util = exp_house_water + exp_rent + exp_comms + exp_trans +
-           exp_misc) %>%
-  gather(cashflow, cash, c(exp_food, exp_lux, exp_vice, exp_util,
-                           exp_med, exp_edu, exp_farm)) %>%
+  mutate(expense_total = exp_bread + exp_rice + exp_meat + exp_seafood + 
+           exp_fruit + exp_veg + exp_resto_hotel + exp_spec + exp_clothe +
+           exp_alcoh + exp_taba + exp_house_water + exp_rent + exp_med +
+           exp_farm + exp_edu + exp_comms + exp_trans + exp_misc) %>%
+  mutate(exp_food = (exp_bread + exp_rice + exp_meat + exp_seafood + 
+           exp_fruit + exp_veg) / expense_total,
+         exp_lux = (exp_resto_hotel + exp_spec + exp_clothe +
+           exp_alcoh + exp_taba) / expense_total,
+         exp_house = (exp_house_water + exp_rent) / expense_total,
+         exp_medi = exp_med / expense_total,
+         exp_farms = exp_farm / expense_total,
+         exp_educ = exp_edu / expense_total,
+         exp_live = (exp_comms + exp_trans + exp_misc) / expense_total) %>%
+  gather(cashflow, cash, c(exp_food, exp_lux, exp_house, exp_medi,
+                           exp_farms, exp_educ, exp_live)) %>%
   select(id, head_class, cashflow, cash) %>%
   arrange(id)
 
 names(fies.w.exp)
 fies.w.exp$cashflow <- factor(fies.w.exp$cashflow)
-levels(fies.w.exp$cashflow)
-summary(fies.w.exp)
 fies.w.exp
 ```
 
 ```{r}
-ggplot(fies.w.exp, aes(x = income, color = cashflow, fill = cashflow)) +
-  geom_density() +
-  scale_x_continuous(trans = log10_trans())
-
-
+ggplot(fies.w.exp, aes(head_class, cash, fill = cashflow)) +
+  geom_boxplot() 
 ```
-
-```{r}
-ggplot(fies.w.exp, aes(income, cash, color = head_class)) +
-  geom_point(alpha = .2) +
-  scale_x_continuous(trans = log10_trans()) +
-  scale_y_continuous(trans = log10_trans(),
-    limits = c(10000, quantile(fies.w.exp$cash, .98))) +
-  facet_wrap(~cashflow)
-
-```
-
