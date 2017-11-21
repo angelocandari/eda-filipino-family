@@ -35,7 +35,6 @@ names(fies)
 
 Each variable is described accordingly. I changed them for the easier coding reference.
 
-
 ```{r renameCols}
 # Rename Lables for easier reference.
 names(fies) <- c("income", "region", "expense", "source", 
@@ -57,8 +56,6 @@ names(fies) <- c("income", "region", "expense", "source",
 names(fies)
 ```
 
-## Income Distribution
-
 ```{r incomeDistribution, message=FALSE, warning=FALSE}
 library(ggplot2)
 
@@ -74,8 +71,6 @@ summary(fies$income)
 ```
 
 Doing a quick summary of the income, we see that the average income would be 247,556 Php annually.
-
-## Where the Average Lies
 
 ```{r incomeLog10, echo=FALSE, message=FALSE, warning=FALSE}
 library(scales)
@@ -101,8 +96,6 @@ In the histogram. we find the average and mark in in a red line. We see that the
 
 With this in mind, we divide the distribution according to working classes.
 
-## Grouped by Working Class according to Survey
-
 ```{r groupByWorkclass, message=FALSE, warning=FALSE}
 fies$head_occup <- factor(fies$head_occup)
 fies$head_workclass <- factor(fies$head_workclass)
@@ -118,8 +111,6 @@ ggplot(fies, aes(income)) +
 ```
 
 In this graph, we use the working class as defined by the survey. But this does not look familiar to us and is vague to us. So, I have decided to evaluate each household and group each according to the occupation of the head of the family.
-
-## We make our own Groups
 
 ```{r groupByCustomClass, message=FALSE, warning=FALSE}
 library(stringr)
@@ -180,8 +171,6 @@ fies$head_class <- with(fies,
                                NA))))))
 ```
 
-## We got to Catch them All
-
 ```{r Reveiw_class, warning=FALSE, paged.print=FALSE}
 
 fies.occup <- fies %>%
@@ -209,8 +198,6 @@ These categories are based on my own classifications of how I see the working cl
 tapply(fies$income, fies$head_class, summary)
 ```
 
-## A Millioniare Waiter
-
 ```{r reveiwWorkerClass, message=FALSE, warning=FALSE}
 fies.workers <- fies %>%
   filter(fies$head_class == "work") %>%
@@ -224,12 +211,9 @@ fies.workers
 subset(fies.workers, income == "5652261")
 ```
 
-
 While reviewing my groupings, I noticed one outlier under the worker class. One Waiter was earning Php5,652,261 annually. This does not seem right to me so I took a deeper look and found out that *income* is actually the sum of salary income and income from their private business.
 
 The Waiter was just earning Php544,810 from his job and the rest  was from his business, which was Php5,107,451. I reviewed my groupings again and made sure that I was grouping them according to their income salary from their occupation and not from their overall income.
-
-## We just want the Income from their Jobs
 
 ```{r addIncomeFromWork}
 fies$inc_work <- with(fies, income - inc_entrep)
@@ -534,3 +518,31 @@ fies.w.exp
 ggplot(fies.w.exp, aes(head_class, cash, fill = cashflow)) +
   geom_boxplot() 
 ```
+
+This boxplots shows the proportion of each group expenses. It enables us to see what each goup are spending on and are prioritizing.
+
+```{r}
+fies %>%
+  mutate(expense = exp_bread + exp_rice + exp_meat + exp_seafood + 
+           exp_fruit + exp_veg + exp_resto_hotel + exp_spec + exp_clothe +
+           exp_alcoh + exp_taba + exp_house_water + exp_rent + exp_med +
+           exp_farm + exp_edu + exp_comms + exp_trans + exp_misc) %>%
+  head()
+```
+
+```{r}
+ggplot(fies, aes(income, expense, color = head_class)) +
+  geom_point(position = "jitter", alpha = .5, shape = 21) +
+  scale_x_continuous(trans = log10_trans(), 
+                     limits = c(15000, quantile(fies$income, .99)),
+                     breaks = c(10000, 25000, 70000,
+                                247556, 
+                                500000, 2000000)) +
+  scale_y_continuous(trans = log10_trans(), 
+                     limits = c(15000, quantile(fies$expense, .99)),
+                     breaks = c(10000, 25000, 70000,
+                                247556, 
+                                500000, 2000000)) +
+  facet_wrap(~head_class)
+```
+
