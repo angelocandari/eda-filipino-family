@@ -526,23 +526,116 @@ fies %>%
   mutate(expense = exp_bread + exp_rice + exp_meat + exp_seafood + 
            exp_fruit + exp_veg + exp_resto_hotel + exp_spec + exp_clothe +
            exp_alcoh + exp_taba + exp_house_water + exp_rent + exp_med +
-           exp_farm + exp_edu + exp_comms + exp_trans + exp_misc) %>%
-  head()
+           exp_farm + exp_edu + exp_comms + exp_trans + exp_misc)
+
+fies
 ```
 
 ```{r}
-ggplot(fies, aes(income, expense, color = head_class)) +
-  geom_point(position = "jitter", alpha = .5, shape = 21) +
+fies.n.exp <- fies %>%
+  filter(!is.na(head_class)) %>%
+  mutate(exp_food = exp_bread + exp_rice + exp_meat + exp_seafood + 
+           exp_fruit + exp_veg,
+         exp_lux = exp_resto_hotel + exp_spec + exp_clothe,
+         exp_vice = exp_alcoh + exp_taba,
+         exp_house = exp_house_water + exp_rent,
+         exp_live = exp_comms + exp_trans + exp_misc) %>%
+  gather(cashflow, cash, c(exp_food, exp_lux, exp_house, exp_vice, exp_med,
+                           exp_farm, exp_edu, exp_live)) %>%
+  select(id, head_class, income, cashflow, cash) %>%
+  arrange(id)
+
+fies.n.exp
+```
+
+```{r}
+summary(fies.n.exp)
+```
+
+```{r}
+ggplot(fies.n.exp, aes(income/8, cash, fill = cashflow, color = I("white"))) +
+  geom_point(position = "jitter", alpha = .2, shape = 21) +
   scale_x_continuous(trans = log10_trans(), 
-                     limits = c(15000, quantile(fies$income, .99)),
+                     #limits = c(15000, quantile(fies.n.exp$income, .98)),
                      breaks = c(10000, 25000, 70000,
                                 247556, 
                                 500000, 2000000)) +
   scale_y_continuous(trans = log10_trans(), 
-                     limits = c(15000, quantile(fies$expense, .99)),
-                     breaks = c(10000, 25000, 70000,
-                                247556, 
-                                500000, 2000000)) +
+                     #limits = c(10, quantile(fies.n.exp$cash, .99)),
+                     breaks = c(1000, 9000, 20000,
+                                40000, 100000)) +
   facet_wrap(~head_class)
 ```
 
+From the graph, it would seem Filipinos would tend to prioritize food above else regardless of working class. With the exception of the farmers, would still have vices and luxury items as part of their expenses.
+
+```{r}
+ggplot(fies.n.exp, aes(income/8, cash, fill = head_class, color = I("white"))) +
+  geom_point(position = "jitter", alpha = .2, shape = 21) +
+  scale_x_continuous(trans = log10_trans(), 
+                     #limits = c(15000, quantile(fies.n.exp$income, .98)),
+                     breaks = c(10000, 25000, 70000,
+                                247556, 
+                                500000, 2000000)) +
+  scale_y_continuous(trans = log10_trans(), 
+                     #limits = c(10, quantile(fies.n.exp$cash, .99)),
+                     breaks = c(1000, 9000, 20000,
+                                40000, 100000)) +
+  facet_wrap(~cashflow)
+```
+
+
+```{r warning=FALSE}
+ggplot(fies.n.exp, aes(income/8, cash, fill = cashflow, color = I("white"))) +
+  geom_point(position = "jitter", alpha = .2, shape = 21) +
+  scale_x_continuous(trans = log10_trans(), 
+                     #limits = c(15000, quantile(fies.n.exp$income, .98)),
+                     breaks = c(10000, 25000, 70000,
+                                247556, 
+                                500000, 2000000)) +
+  scale_y_continuous(trans = log10_trans(), 
+                     #limits = c(10, quantile(fies.n.exp$cash, .99)),
+                     breaks = c(1000, 9000, 20000,
+                                40000, 100000)) +
+  facet_grid(head_class~cashflow)
+```
+
+
+AS income increases, so does their expenses. In all types of households, Filipinos would generally spend more housing, living, luxury items. Food expense would increase but it would level off at certain point. Education, Medical and Vices seems to be too spread out. This may well depend on other factors.
+
+## Savings
+
+```{r}
+fies <- transform(fies, savings = income - expense)
+
+fies.savings <- fies %>%
+  filter(!is.na(head_class)) %>%
+  select(id, head_class, income, expense, savings) %>%
+  mutate(inc_sav_ratio = savings/income) %>%
+  arrange(savings)
+
+fies.savings
+```
+
+```{r}
+ggplot(fies.savings, aes(income, inc_sav_ratio)) +
+  geom_line() +
+  scale_x_continuous(trans = log10_trans(), 
+                   #limits = c(15000, quantile(fies.n.exp$income, .98)),
+                   breaks = c(10000, 25000, 70000,
+                              247556, 
+                              500000, 2000000)) +
+  coord_cartesian(ylim = c(-1, 1))
+```
+
+```{r}
+ggplot(fies.savings, aes(income, inc_sav_ratio)) +
+  geom_jitter(alpha = .1) +
+  scale_x_continuous(trans = log10_trans(), 
+                   #limits = c(15000, quantile(fies.n.exp$income, .98)),
+                   breaks = c(10000, 25000, 70000,
+                              247556, 
+                              500000, 2000000)) +
+  coord_cartesian(ylim = c(-.5, 1)) +
+  facet_wrap(~head_class)
+```
