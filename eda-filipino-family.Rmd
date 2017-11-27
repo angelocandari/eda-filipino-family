@@ -610,12 +610,21 @@ fies <- transform(fies, savings = income - expense)
 
 fies.savings <- fies %>%
   filter(!is.na(head_class)) %>%
-  select(id, head_class, income, expense, savings) %>%
+  #select(id, head_class, head_occup, income, expense, savings) %>%
   mutate(inc_sav_ratio = savings/income) %>%
-  arrange(savings)
+  arrange(desc(inc_sav_ratio))
 
 fies.savings
 ```
+
+```{r}
+summary(fies.savings$inc_sav_ratio)
+
+max(fies.savings$inc_sav_ratio)
+
+subset(fies.savings, fies.savings$inc_sav_ratio > .9)
+```
+
 
 ```{r}
 ggplot(fies.savings, aes(income, inc_sav_ratio)) +
@@ -629,8 +638,8 @@ ggplot(fies.savings, aes(income, inc_sav_ratio)) +
 ```
 
 ```{r}
-ggplot(fies.savings, aes(income, inc_sav_ratio)) +
-  geom_jitter(alpha = .1) +
+ggplot(fies.savings, aes(income, inc_sav_ratio, color = head_class)) +
+  geom_line(alpha = .5) +
   scale_x_continuous(trans = log10_trans(), 
                    #limits = c(15000, quantile(fies.n.exp$income, .98)),
                    breaks = c(10000, 25000, 70000,
@@ -639,3 +648,23 @@ ggplot(fies.savings, aes(income, inc_sav_ratio)) +
   coord_cartesian(ylim = c(-.5, 1)) +
   facet_wrap(~head_class)
 ```
+
+It seems that Income to Savings Ratio is similar to everyone in some way. As they have more money, they tend to save more. The less money that they would have they would save less. I want to find out some sort of relationship from their spending. I look at the stuff that they have and compare these with their propensity to save.
+
+```{r}
+ggplot(fies, aes(car_n, savings)) +
+  geom_point()
+```
+
+```{r}
+library(GGally)
+
+fies.n.stuff <- fies %>%
+  filter(is.na(head_class)) %>%
+  select(id, head_class, income, expense, savings, tv_n, DVD_n, sterio_n,
+         ref_n, wash_n, aircon_n, car_n, tel_n, cell_n, pc_n, stove_n,
+         mboat_n, mbike_n)
+
+ggpairs(fies.n.stuff, axisLabels = "internal")
+```
+
