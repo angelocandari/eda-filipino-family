@@ -250,7 +250,7 @@ tapply(fies$inc_work, fies$head_class, summary)
 I will still use the mean of their overall income for my basis of the analysis. However, I will be using their salary income as bases for grouping them according to their respective working classes.
 
 ```{r reviewProfessionals, message=FALSE, warning=FALSE}
-fies.exp <- fies %>%
+fies.experts <- fies %>%
   filter(fies$head_class == "exp") %>%
   group_by(head_occup) %>%
   summarise(income_mean = mean(inc_work),
@@ -258,7 +258,7 @@ fies.exp <- fies %>%
             n= n()) %>%
   arrange(desc(income_mean))
 
-fies.exp
+fies.experts
 ```
 
 ```{r reviewOffice, message=FALSE, warning=FALSE}
@@ -630,26 +630,78 @@ I take a look at the savings of each Filipino households by taking in a new vari
 ```{r}
 fies <- transform(fies, savings = income - expense)
 
-fies.savings <- fies %>%
-  mutate(inc_sav_ratio = savings/income) %>%
-  arrange(inc_sav_ratio)
+fies <- transform(fies, sav_inc_ratio = savings/income)
 
-fies.savings
+head(fies)
 ```
 
 Once I have the Savings of each household, I divide savings over income to get the ratio. I was surprised to see many households in debt.
 
 ```{r}
-fies.savings$finance <- with(fies.savings,
-                            ifelse(inc_sav_ratio < 0, "deficit",
-                            ifelse(inc_sav_ratio > 0, "surplus", "deficit")))
+fies$finance <- with(fies,
+                ifelse(sav_inc_ratio < 0, "deficit",
+                ifelse(sav_inc_ratio > 0, "surplus", "deficit")))
 
-fies.savings$finance <- factor(fies.savings$finance)
+fies$finance <- factor(fies$finance)
+
+table(fies$finance)
 ```
+
+I counted how many were in debt and to those who had a surplus and found that it was not that many. Only 313 out ouf 41,544 households were in debt and who were living beyond their means. It is only 0.75 % of the population.
 
 ```{r}
-ggplot(fies.savings, aes(finance,  fill = head_class)) +
-  geom_bar() +
+summary(fies$sav_inc_ratio)
+```
+
+With the summary of savings to income ration, I see that most Filipinos would save half of their income.
+
+```{r}
+ggplot(subset(fies, !is.na(head_class)),
+       aes(sav_inc_ratio)) +
+  geom_histogram(binwidth = .02) +
+  coord_cartesian(xlim = c(0, 1)) +
+  geom_vline(xintercept = median(fies$sav_inc_ratio),
+             color = I("red"))
+```
+
+It is good to know that most Filipinos would save their money rather than spending it.
+
+```{r}
+ggplot(subset(fies, !is.na(head_class)), 
+       aes(sav_inc_ratio)) +
+  geom_histogram(binwidth = .02) +
+  coord_cartesian(xlim = c(0, 1)) +
+  geom_vline(xintercept = median(fies$sav_inc_ratio),
+             color = I("red")) +
   facet_wrap(~head_class)
 ```
+
+I facet the same graph according to the working class and see a similar trend when graphing income.
+
+```{r message=FALSE, warning=FALSE}
+ggplot(subset(fies, !is.na(head_class)),
+       aes(income, savings, color = head_class)) +
+  geom_point(alpha = .1) +
+  scale_x_continuous(limits = c(0, quantile(fies$income, .98))) +
+  scale_y_continuous(limits = c(0, quantile(fies$savings, .98)),
+                     breaks = c(200000, 400000, 600000, 800000)) +
+  facet_wrap(~head_class)
+```
+
+Graphing the savings and income in a scatterplt, I can see linear trend for all working classes.
+
+```{r message=FALSE, warning=FALSE}
+ggplot(subset(fies, !is.na(head_class)),
+       aes(income, savings, color = head_class)) +
+  geom_point(alpha = .1) +
+  scale_x_continuous(limits = c(0, quantile(fies$income, .98))) +
+  scale_y_continuous(limits = c(0, quantile(fies$savings, .98)))
+```
+
+It seems that savings proportion is consistent in that as income increases, so does their savings.
+
+```{r}
+fies
+```
+
 
