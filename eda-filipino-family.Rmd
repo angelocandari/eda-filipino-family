@@ -32,7 +32,7 @@ The Dataset contains 41,544 observations of Filipino Households from every
 Region of the country. It is comprised of 60 variables describing each family 
 on their income, family description and expenditure.
 
-```{r Load_data, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 library(readr)
 
 fies <- read_csv("fies.csv")
@@ -42,7 +42,7 @@ names(fies)
 
 Each variable is described accordingly in their labels.
 
-```{r renameCols}
+```{r}
 # Rename Lables for easier reference.
 names(fies) <- c("income", "region", "expense", "source", 
                  "agri_house", "exp_bread", "exp_rice", "exp_meat", 
@@ -65,7 +65,7 @@ names(fies)
 
 I have modified each one to make it easier for coding.
 
-```{r incomeDistribution, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 library(ggplot2)
 
 ggplot(fies, aes(income)) +
@@ -76,13 +76,13 @@ ggplot(fies, aes(income)) +
 There are a lot of low-income and few high-income households that would make
 the graph skew to the left and stretch out to the right.
 
-```{r incomeSummary}
+```{r}
 summary(fies$income)
 ```
 
 Average income per household would be at 247,556 Php annually.
 
-```{r incomeLog10, echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(scales)
 
 set.seed(222)
@@ -109,7 +109,7 @@ Marked in red, the average income is slightly on the right from the center.
 This tells us that the average does not best describe the whole distribution.
 In other words, 247k Php annual income is really high for most Filipinos.
 
-```{r groupByWorkclass, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 fies$head_occup <- factor(fies$head_occup)
 fies$head_workclass <- factor(fies$head_workclass)
 
@@ -135,7 +135,7 @@ how I see our working class in society. Therefore, I create our own
 classification of the working class based each on the occupation of the head of
 the family.
 
-```{r groupByCustomClass, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 library(stringr)
 library(dplyr)
 
@@ -194,7 +194,7 @@ fies$head_class <- with(fies,
                          NA))))))
 ```
 
-```{r Reveiw_class, warning=FALSE, paged.print=FALSE}
+```{r warning=FALSE, paged.print=FALSE}
 
 fies.occup <- fies %>%
   filter(is.na(fies$head_class)) %>%
@@ -230,14 +230,14 @@ inc.ave
 Since I am ignoring households that did not specify the occupation of their
 head, I get the average income of households that did and store it in inc.ave.
 
-```{r summaryCustomClass }
+```{r}
 tapply(fies$income, fies$head_class, summary)
 ```
 
 I take a quick summary of the different classes and see the different means of
 each of the working class.
 
-```{r reveiwWorkerClass, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 fies.workers <- fies %>%
   filter(fies$head_class == "work") %>%
   select(head_occup, income, inc_entrep) %>%
@@ -249,7 +249,7 @@ fies.workers
 This is where I group each working class according the occupation of the head
 of the family starting with the worker class.
 
-```{r findingWaiterOutlier, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 subset(fies.workers, income == "5652261")
 ```
 
@@ -263,7 +263,7 @@ business, which was Php5,107,451. I reviewed my groupings again and made sure
 that I was grouping them according to their income salary from their occupation
 and not from their overall income.
 
-```{r addIncomeFromWork}
+```{r}
 fies$inc_work <- with(fies, income - inc_entrep)
 
 # Check if there are no negative income from work.
@@ -274,11 +274,11 @@ I created a new variable that only included their salary income. If income is
 the overall income, then deducting income from their business (inc_entrep)
 should not give us a negative value.
 
-```{r summaryOfCustomGroups}
+```{r}
 tapply(fies$inc_work, fies$head_class, summary)
 ```
 
-```{r summaryOfCustomGroups}
+```{r}
 tapply(fies$income, fies$head_class, summary)
 ```
 
@@ -286,7 +286,7 @@ I will still use the mean of their overall income for my basis of the analysis.
 However, I will be using their salary income as bases for grouping them
 according to their respective working classes.
 
-```{r reviewProfessionals, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 fies.experts <- fies %>%
   filter(fies$head_class == "exp") %>%
   group_by(head_occup) %>%
@@ -298,7 +298,7 @@ fies.experts <- fies %>%
 fies.experts
 ```
 
-```{r reviewOffice, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 fies.office <- fies %>%
   filter(fies$head_class == "off") %>%
   group_by(head_occup) %>%
@@ -310,7 +310,7 @@ fies.office <- fies %>%
 fies.office
 ```
 
-```{r reviewFarmer, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 fies.farm <- fies %>%
   filter(fies$head_class == "farm") %>%
   group_by(head_occup) %>%
@@ -322,7 +322,7 @@ fies.farm <- fies %>%
 fies.farm
 ```
 
-```{r countWorkclass}
+```{r}
 fies$head_class <- factor(fies$head_class, 
                           levels = c("exp", "gov", "off", "farm", "work"),
                           ordered = T)
@@ -336,7 +336,7 @@ Experts are the minority of the group.
 
 ### Income Source
 
-```{r incomeDistributionByCustomClass, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 ggplot(subset(fies, income != 0 & 
                 !is.na(head_class)), 
        aes(income)) +
@@ -356,7 +356,7 @@ I go back to the overall income distribution but this time using our custom
 work class. I add the average income Php239k and I see that some groups
 are below the average line and other groups are above the average line.
 
-```{r incomeFromSalaries, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 # I remove the households that does not specify occupation.
 ggplot(subset(fies, inc_work != 0 & 
                 !is.na(head_class)), 
@@ -380,7 +380,7 @@ If people relied from their salaries, the picture would generally look the same
 except for the office and workers, where salaries are more spread out to the
 left.
 
-```{r expenseByCustomClass, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 ggplot(subset(fies, inc_entrep != 0 & 
                 !is.na(head_class)), 
        aes(inc_entrep)) +
@@ -406,13 +406,13 @@ These grouped histograms shows that Filipinos who works in offices and workers
 would commonly rely mostly from their salaries but would still have income from
 private business that would support their overall income.
 
-```{r boxplotsIncomeSalaries}
+```{r}
 ggplot(subset(fies, !is.na(head_class)), aes(head_class, inc_work)) +
   geom_boxplot() +
   coord_cartesian(ylim = c(0, quantile(fies$inc_work, .98)))
 ```
 
-```{r boxplotsIncomeBusiness}
+```{r}
 ggplot(subset(fies, !is.na(head_class)), aes(head_class, inc_entrep)) +
   geom_boxplot() +
   coord_cartesian(ylim = c(0, quantile(fies$inc_entrep, .98)))
@@ -423,7 +423,7 @@ groups would treat their business as a secondary source of income, office
 employees and farmers would seem to have more profitable business than the rest
 of the groups.
 
-```{r transformWideToLong}
+```{r}
 library(tidyr)
 
 fies$id <- seq_len(nrow(fies))
@@ -441,7 +441,7 @@ I would like to compare work income from business income to find out the
 relationship. I transform the data from wide format to long format so that
 I can graph the data in a frequency polygon.
 
-```{r salaryVsBusiness, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 ggplot(fies.n, aes(inc, color = inc_type)) +
   geom_freqpoly(alpha =.5) +
   scale_x_continuous(trans = log10_trans(), 
@@ -795,7 +795,7 @@ It seems that savings proportion is consistent in that as income increases, so d
 
 ### Side Business
 
-```{r SideBusiness, echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 library("ggthemes")
 
 ggplot(fies.dual, aes(head_class, prop, fill = inc_type)) +
@@ -811,7 +811,7 @@ Filipino households would tend to have 2 sources of income, either from their sa
 
 ### Financial Priorities
 
-```{r Financial Priorities, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 ggplot(fies.n.exp, aes(income, cash)) +
   geom_point(aes(color = cashflow),
              position = "jitter", alpha = .05) +
@@ -855,3 +855,42 @@ lower income jobs.
 
 ## Reflections
 
+I find it hard to go back and forth through the exploratory process. When I go
+through the analysis, I find certain details that I have overlooked. At this
+stage, I have to decide if I should go back to the beginning and change that
+detail or should I change it at the point where I found the problem. Take for
+example, I thought I was using the total expense in my analysis. It turns out
+that I was using the total Food expense. I realized that I was using the wrong
+expense after several graphs. I had to choices: to go back and change recompute
+the total expense or change it at the stage of my analysis and move on. I ended
+up doing the latter.
+
+I guess the hardest part of doing exploratory data analysis (EDA) is
+encountering doubt along the process. At some point, I start to question my own
+way of thinking and I was afraid that I made too many assumptions, which makes
+the whole process questionable. On the other hand, I had to be decisive and
+trust my gut feeling so that I can move on. I think the best way to get through
+it all is to have 3 principles in mind. 
+
+First, **to see things for what they are**. I try to see thinks as objectively
+as I can. i try not to overthink a certain variable or what it means. Most of
+all, I try to explain things as plainly as I can even to myself so that people,
+including me, can understand the process. 
+
+Second, **I act on the things that I can control**. There are a ton of
+variables that I can use and many variations on how to use them. Focusing on
+the things that I can control can make things more easier. 
+
+Lastly, **to let go of things that I cannot control**. I cannot know or analyze
+everything. I have to let of of things that I have no control over and trust
+that everything will make sense in the end.
+
+For future work and anyone who encounters this analysis, try not to rely on
+averages and try to think plainly. The terms used in the survey, when I first
+found it, was a bit vague and alien. For example, Working Class as defined by
+the survey was too technical and did not really relate to a common sociatal
+structure that we commonly see. It would be a lot useful if the data indicates
+if the occupation is an overseas worker or is working within the country.
+Because I know that a lot of Filipinos are working abroad. In addition, a
+construction worker working in the Philippines has a much lower salary than the
+a construction working working abroad.
