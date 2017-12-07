@@ -8,14 +8,11 @@ output:
     css: style.css
 ---
 
-# Introduction
 Filipinos are harding working people and yet they tend to be careless with
-their money. They would choose to work far from home to provide for their
-family. This an admirable trait and yet it seems to be contradicting on the way
-they would spend their money. Even if their income would increas, so does their
-expenditure. I would hear stories of fellow Filipinos spending a lifetime of
-savings over a weekend visiting relatives, whether from abroad or just in the
-province.
+their money. They would work for long hours, sometimes far from home, and
+end up spending all their money on stuff they don't need. It is common to hear
+stories of Filipinos spending a lifetime working overseas and coming back
+poorer than they were before the left.
 
 ## Objectives
 In this article, I would like to know how Filipinos spend their money in
@@ -28,11 +25,12 @@ from the 2015 most recent survey. The raw data was cleaned by Francis Paul
 Flores from his [kaggle.com/grosvenpaul](https://www.kaggle.com/grosvenpaul/family-income-and-expenditure/downloads/Family%20Income%20and%20Expenditure.csv).
 
 # Analysis Section
+## Univiriate Plots Section
 The Dataset contains 41,544 observations of Filipino Households from every 
 Region of the country. It is comprised of 60 variables describing each family 
 on their income, family description and expenditure.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(readr)
 
 fies <- read_csv("fies.csv")
@@ -42,7 +40,7 @@ names(fies)
 
 Each variable is described accordingly in their labels.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 # Rename Lables for easier reference.
 names(fies) <- c("income", "region", "expense", "source", 
                  "agri_house", "exp_bread", "exp_rice", "exp_meat", 
@@ -65,18 +63,17 @@ names(fies)
 
 I have modified each one to make it easier for coding.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
 
 ggplot(fies, aes(income)) +
   geom_histogram()
-
 ```
 
 There are a lot of low-income and few high-income households that would make
 the graph skew to the left and stretch out to the right.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 summary(fies$income)
 ```
 
@@ -93,8 +90,8 @@ ggplot(fies, aes(income)) +
   scale_x_continuous(
       trans = log10_trans(),
       breaks = c(10000, 25000, 70000,
-                 150000, 247556, 400000,
-                 1000000, 2000000)) +
+                 247556,
+                 800000, 2000000), labels = comma) +
   geom_vline(data = fies, 
              aes(xintercept = mean(fies$income)), 
              color = I("red"))
@@ -109,18 +106,40 @@ Marked in red, the average income is slightly on the right from the center.
 This tells us that the average does not best describe the whole distribution.
 In other words, 247k Php annual income is really high for most Filipinos.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(fies, aes(head_workclass)) +
+  geom_bar() +
+  coord_flip()
+```
+
+I took a closer look at the head_workclass or the working class for each job
+occupation and see their counts.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(fies, aes(head_age)) +
+  geom_bar()
+```
+
+I also check the ages of the heads fo the family.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(fies, aes(family_n)) +
+  geom_bar() +
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10))
+```
+
+In addition, I checked the number of family members in each households.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 fies$head_occup <- factor(fies$head_occup)
 fies$head_workclass <- factor(fies$head_workclass)
 
 ggplot(fies, aes(income)) +
   geom_histogram() +
   scale_x_continuous(
-                     trans = log10_trans(), 
-                     breaks = c(10000, 25000, 70000,
-                                150000, 400000, 
-                                1000000, 2000000)) +
-  facet_wrap(~ head_workclass)  +
+      trans = log10_trans(),
+      breaks = c(50000, 247556, 1500000), labels = comma) +
+  facet_wrap(~ head_workclass, ncol = 1)  +
   geom_vline(data = fies, 
              aes(xintercept = mean(fies$income)), 
              color = I("red"))
@@ -131,9 +150,7 @@ survey. I do this so that I can see the relationship of the population average
 income with the different groups of working classes.
 
 This looks better but the categories are a bit vague and are not familiar of
-how I see our working class in society. Therefore, I create our own
-classification of the working class based each on the occupation of the head of
-the family.
+how I see our working class in society. 
 
 ```{r message=FALSE, warning=FALSE}
 library(stringr)
@@ -194,7 +211,7 @@ fies$head_class <- with(fies,
                          NA))))))
 ```
 
-```{r warning=FALSE, paged.print=FALSE}
+```{r message=FALSE, warning=FALSE, include=FALSE}
 
 fies.occup <- fies %>%
   filter(is.na(fies$head_class)) %>%
@@ -207,19 +224,10 @@ fies.occup <- fies %>%
 fies.occup
 ```
 
-The working classes that I have defined are as follows:
+Therefore, I create our own classification of the working class based each on
+the occupation of the head of the family.
 
-- *Expert.* Jobs that usually requires higher education.
-- *Office* Usually found in shops and offices.
-- *Government.* Jobs in government.
-- *Workers.* Jobs that usually does not require a degree.
-- *Farmers.* Jobs that pertain to rural work. Agriculture, Fishing, etc.
-
-These categories are based on my own classifications of how I see the working
-class and their overall mean income. I am ignoring the households that did not
-specify the occupation of the head of the family.
-
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 inc.ave <- fies %>%
   filter(!is.na(head_occup)) %>%
   summarise(mean = mean(income))
@@ -230,14 +238,14 @@ inc.ave
 Since I am ignoring households that did not specify the occupation of their
 head, I get the average income of households that did and store it in inc.ave.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 tapply(fies$income, fies$head_class, summary)
 ```
 
 I take a quick summary of the different classes and see the different means of
 each of the working class.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 fies.workers <- fies %>%
   filter(fies$head_class == "work") %>%
   select(head_occup, income, inc_entrep) %>%
@@ -249,7 +257,7 @@ fies.workers
 This is where I group each working class according the occupation of the head
 of the family starting with the worker class.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 subset(fies.workers, income == "5652261")
 ```
 
@@ -263,7 +271,7 @@ business, which was Php5,107,451. I reviewed my groupings again and made sure
 that I was grouping them according to their income salary from their occupation
 and not from their overall income.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 fies$inc_work <- with(fies, income - inc_entrep)
 
 # Check if there are no negative income from work.
@@ -274,19 +282,19 @@ I created a new variable that only included their salary income. If income is
 the overall income, then deducting income from their business (inc_entrep)
 should not give us a negative value.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 tapply(fies$inc_work, fies$head_class, summary)
 ```
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 tapply(fies$income, fies$head_class, summary)
 ```
 
 I will still use the mean of their overall income for my basis of the analysis.
-However, I will be using their salary income as bases for grouping them
-according to their respective working classes.
+However, I will be using their salary income in grouping them according to 
+their respective working classes.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 fies.experts <- fies %>%
   filter(fies$head_class == "exp") %>%
   group_by(head_occup) %>%
@@ -295,10 +303,10 @@ fies.experts <- fies %>%
             n= n()) %>%
   arrange(desc(income_mean))
 
-fies.experts
+head(fies.experts)
 ```
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 fies.office <- fies %>%
   filter(fies$head_class == "off") %>%
   group_by(head_occup) %>%
@@ -307,10 +315,10 @@ fies.office <- fies %>%
             n= n()) %>%
   arrange(desc(income_mean))
 
-fies.office
+head(fies.office)
 ```
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 fies.farm <- fies %>%
   filter(fies$head_class == "farm") %>%
   group_by(head_occup) %>%
@@ -319,10 +327,10 @@ fies.farm <- fies %>%
             n= n()) %>%
   arrange(desc(income_mean))
 
-fies.farm
+head(fies.farm)
 ```
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 fies$head_class <- factor(fies$head_class, 
                           levels = c("exp", "gov", "off", "farm", "work"),
                           ordered = T)
@@ -334,9 +342,56 @@ ggplot(subset(fies, !is.na(head_class)), aes(head_class)) +
 In our dataset, I generally have more workers than any of the other classes.
 Experts are the minority of the group.
 
+## Univariate Analysis
+
+### What is the structure of your dataset?
+There are 41,544 observations in the data set with 60 variables. Description of
+each variables are described on the column names from the raw data. The
+first set of variables decribes the income and expenses of each household. The
+income consists of the salary of the head of the family and income from their
+private businesses. The expenses are broken down into more details such as food
+expenditure, housing, luxury items, etc. The second set of variables describes
+the family and head of the family, whose income provides the greater share of
+the income. It discusses the age, gender, working class and occupation of the
+head of the family. As well as, the some characteristics of the family itself
+like number of family members, number of children and number of employed in the
+family. The third set of variables are the properties that the family own. This
+describes the type of house they have, the number of cars, phones, tv, etc.
+
+### What is/are the main feature(s) of interest in your dataset?
+I am particularly interested in the income, occupation of the head of the
+family and their expenses. I want to see how spending habits change as income
+increases and what each family prioritize in spending.
+
+### Did you create any new variables from existing variables in the dataset?
+As I analyze Income in the next section, I found out that Income includes
+income from salaries and their private businesses. Once I discovered this, I
+subtracted business income from overall income to get the salary income. I also
+derived the savings, total expenses, savings to income ratio as I go along the
+analysis.
+
+### Did you perform Data Wrangling?
+The Working Class as defined by the survey is vague and unfamiliar to me. As a
+result, I evaluated each occupation of the head of the family and categorized
+each household under a new working class variable called *head_class*.
+
+The working classes that I have defined are as follows:
+
+- *Expert.* Jobs that usually requires higher education.
+- *Office* Usually found in shops and offices.
+- *Government.* Jobs in government.
+- *Workers.* Jobs that usually does not require a degree.
+- *Farmers.* Jobs that pertain to rural work. Agriculture, Fishing, etc.
+
+These categories are based on my own classifications of how I see the working
+class and their overall mean income. I am ignoring the households that did not
+specify the occupation of the head of the family.
+
+
+## Bivariate Plots Section
 ### Income Source
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(subset(fies, income != 0 & 
                 !is.na(head_class)), 
        aes(income)) +
@@ -356,16 +411,15 @@ I go back to the overall income distribution but this time using our custom
 work class. I add the average income Php239k and I see that some groups
 are below the average line and other groups are above the average line.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 # I remove the households that does not specify occupation.
 ggplot(subset(fies, inc_work != 0 & 
                 !is.na(head_class)), 
        aes(inc_work)) +
   geom_histogram(col=I("white"), fill = I("#00CCFF")) +
-  scale_x_continuous(trans = log10_trans(), 
-                     breaks = c(10000, 25000, 70000,
-                                239113, 
-                                500000, 2000000),
+  scale_x_continuous(trans = log10_trans(),
+                     breaks = c(3000, 10000, 50000, 239113, 1500000), 
+                     labels = comma,
                      limits = c(2000, 2500000)) +
   scale_y_continuous(breaks = c(0, 500, 1000, 1500,
                                2000, 2500),
@@ -380,15 +434,14 @@ If people relied from their salaries, the picture would generally look the same
 except for the office and workers, where salaries are more spread out to the
 left.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(subset(fies, inc_entrep != 0 & 
                 !is.na(head_class)), 
        aes(inc_entrep)) +
   geom_histogram(col=I("white"), fill = I("#82AF4C")) +
-  scale_x_continuous(trans = log10_trans(), 
-                     breaks = c(10000, 25000, 70000,
-                                239113, 
-                                500000, 2000000),
+  scale_x_continuous(trans = log10_trans(),
+                     breaks = c(3000, 10000, 50000, 239113, 1500000), 
+                     labels = comma,
                      limits = c(2000, 2500000)) +
   scale_y_continuous(breaks = c(0, 500, 1000, 1500,
                                2000, 2500),
@@ -406,13 +459,13 @@ These grouped histograms shows that Filipinos who works in offices and workers
 would commonly rely mostly from their salaries but would still have income from
 private business that would support their overall income.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(subset(fies, !is.na(head_class)), aes(head_class, inc_work)) +
   geom_boxplot() +
   coord_cartesian(ylim = c(0, quantile(fies$inc_work, .98)))
 ```
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(subset(fies, !is.na(head_class)), aes(head_class, inc_entrep)) +
   geom_boxplot() +
   coord_cartesian(ylim = c(0, quantile(fies$inc_entrep, .98)))
@@ -423,7 +476,7 @@ groups would treat their business as a secondary source of income, office
 employees and farmers would seem to have more profitable business than the rest
 of the groups.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyr)
 
 fies$id <- seq_len(nrow(fies))
@@ -441,15 +494,14 @@ I would like to compare work income from business income to find out the
 relationship. I transform the data from wide format to long format so that
 I can graph the data in a frequency polygon.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(fies.n, aes(inc, color = inc_type)) +
   geom_freqpoly(alpha =.5) +
-  scale_x_continuous(trans = log10_trans(), 
-                     breaks = c(10000, 25000, 70000,
-                                239113, 
-                                500000, 2000000),
+  scale_x_continuous(trans = log10_trans(),
+                     breaks = c(3000, 10000, 50000, 239113, 1500000), 
+                     labels = comma,
                      limits = c(2000, 2500000)) +
-  facet_wrap(~ head_class, ncol = 2)
+  facet_wrap(~ head_class, ncol = 1)
 ```
 
 I see that farmers have both their salaries from business income at almost
@@ -462,7 +514,7 @@ relationship between income from salaries business.
 But this is not clear because I am mixing households with 2 sources of income
 (salary and Business) with the ones with only 1 source of income.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 fies.dual <- fies %>%
   filter(!is.na(head_class)) %>%
   filter(inc_work > 0 & inc_entrep > 0) %>%
@@ -473,9 +525,9 @@ fies.dual <- fies %>%
   select(id, head_class, inc_type, prop) %>%
   arrange(id)
 
-fies.dual
+head(fies.dual)
 ```
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 length(unique(fies.dual$id))
 ```
 
@@ -483,7 +535,7 @@ Out of the total 41,544 households, 23,897 have 2 sources of income. I extract
 these observations and mold the data to enable us to see where these income are
 coming from according to our work class.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(fies.dual, aes(head_class, prop, fill = inc_type)) +
   geom_boxplot()
 ```
@@ -494,16 +546,33 @@ they would get 75% of their income from their salary. While Office and Farmers
 would have their Business income producing at almost the same level from their
 Salary income.
 
+## Bivariate Analysis
+### How did the feature(s) of interest vary with other features in the dataset?
+I was particularly interested on how income from salary related to to their
+income from their businesses. Some households would be industrious enough to
+have work for a company and at the same time have a side business. I wanted to
+know how much of their income was from their salary and how much was from their
+business. I found out that although many households have a business on the
+side, they will still always be dependent on salaries.
+
+### What was the strongest relationship you found?
+The strongest relationship is between income and expense. It is an obvious fact
+that as income increase so does their expenses. If that is the case, I wanted
+to know what do Filipino households spend their income on. In other words, what
+are their financial priorities and if this changes as income increase?
+
+## Multivariate Analysis
+
 ### Spending Habits
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 fies.w <- fies %>%
   filter(!is.na(head_class)) %>%
   select(id, head_class, income, expense)
 ```
 
 
-```{r warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(fies.w, aes(income, expense)) +
   geom_point(alpha = .2) +
   scale_x_continuous(limits = c(0, quantile(fies$income, .98))) +
@@ -513,7 +582,7 @@ ggplot(fies.w, aes(income, expense)) +
 I want to relate expense with their income and if I graph the relationship,
 I see that as income increase, so does their expenses, which is obvious.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(fies.w, aes(income, expense, color = head_class)) +
   geom_point(alpha = .2) +
   scale_x_continuous(limits = c(0, quantile(fies$income, .98))) +
@@ -524,7 +593,7 @@ The same graph but this time with color grouped according to our custom
 I see which work class have higher incomes. But this is not really clear
 because of overplotting.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(fies.w, aes(income, expense, color = head_class)) +
   geom_point(position = "jitter", alpha = .5, shape = 21) +
   scale_x_continuous(trans = log10_trans(), 
@@ -542,20 +611,20 @@ ggplot(fies.w, aes(income, expense, color = head_class)) +
 This graph shows as a more linear relationship between expense and income but
 the working class is still unclear.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(fies.w, aes(income, expense, color = head_class)) +
   geom_point(position = "jitter", alpha = .5, shape = 21) +
   scale_x_continuous(trans = log10_trans(), 
                      limits = c(15000, quantile(fies$income, .98)),
                      breaks = c(10000, 25000, 70000,
                                 239113, 
-                                500000, 2000000)) +
+                                700000)) +
   scale_y_continuous(trans = log10_trans(), 
                      limits = c(15000, quantile(fies$income, .98)),
                      breaks = c(10000, 25000, 70000,
                                 239113, 
                                 500000, 2000000)) +
-  facet_wrap(~head_class)
+  facet_wrap(~head_class, ncol = 2)
 ```
  
 Splitting the graphs in a facet, it seems that all classes are resembling the
@@ -563,7 +632,7 @@ same pattern where the more income they have the higher they would spend. This
 does not tell us anything new. And I get to thinking, what are they actually 
 spending on?
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 fies.w.exp <- fies %>%
   filter(!is.na(head_class)) %>%
   mutate(expense_total = exp_bread + exp_rice + exp_meat + exp_seafood + 
@@ -592,7 +661,7 @@ I just realized that the *expense* is the total expense of food and not the
 total expense overall. The above graphs in this section are wrong. I correct
 this by adding all expenses under *expense_total*.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(fies.w.exp, aes(head_class, cash, fill = cashflow)) +
   geom_boxplot() 
 ```
@@ -610,7 +679,7 @@ expenses according to the following categories:
 - *Education:* Education Expenses.
 - *Farming:* Farming and Gardening Expenses.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 fies %>%
   mutate(expense = exp_bread + exp_rice + exp_meat + exp_seafood + 
            exp_fruit + exp_veg + exp_resto_hotel + exp_spec + exp_clothe +
@@ -620,7 +689,7 @@ fies %>%
 
 I add the expenses overall and add it to our main table *fies* as *expense*.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 fies.n.exp <- fies %>%
   filter(!is.na(head_class)) %>%
   mutate(Food = exp_bread + exp_rice + exp_meat + exp_seafood + 
@@ -644,37 +713,32 @@ I transform the data into another long format but this time expenses are split
 according to their different types. Income will be used as reference bu when I
 do transform the data, it replicates income 8 times. It does this because there
 are 8 types of expenses. I tried chaning the income as a factor but it made my
-graph into a qualitative graph that made my x-axis lables to detailed. This just makes the points darker but the plot is still more or less the same.
+graph into a qualitative graph that made my x-axis lables to detailed. This
+just makes the points darker but the plot is still more or less the same.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(fies.n.exp, aes(income, cash, fill = cashflow, color = I("white"))) +
   geom_point(position = "jitter", alpha = .2, shape = 21) +
   scale_x_continuous(trans = log10_trans(), 
-                     breaks = c(10000, 25000, 70000,
-                                239113, 
-                                500000, 2000000)) +
+                     breaks = c(20000, 239113, 2000000)) +
   scale_y_continuous(trans = log10_trans(),
-                     breaks = c(1000, 9000, 20000,
-                                40000, 100000)) +
+                     breaks = c(1000, 20000, 200000)) +
   scale_fill_brewer(palette = "Set1") +
-  facet_wrap(~head_class)
+  facet_wrap(~head_class, ncol = 2)
 ```
 
 From the graph, it would seem Filipinos would tend to prioritize food above
 else regardless of working class. With the exception of the farmers, who would
 have farming as their major expense.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(fies.n.exp, aes(income, cash, 
                        fill = head_class, color = I("white"))) +
   geom_point(position = "jitter", alpha = .2, shape = 21) +
-  scale_x_continuous(trans = log10_trans(),
-                     breaks = c(10000, 25000, 70000,
-                                239113, 
-                                500000, 2000000)) +
+  scale_x_continuous(trans = log10_trans(), 
+                     breaks = c(20000, 239113, 3000000)) +
   scale_y_continuous(trans = log10_trans(),
-                     breaks = c(1000, 9000, 20000,
-                                40000, 100000)) +
+                     breaks = c(1000, 20000, 300000)) +
   scale_fill_brewer(palette = "Set1") +
   facet_wrap(~cashflow)
 ```
@@ -686,16 +750,11 @@ linearly correlated. As income increases, these expenses increase as well. Food
 is interesting because it also increases but only to a point. I gues no matter
 how rich you are, your taste in food does not change.
 
-```{r warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(fies.n.exp, aes(income, cash, fill = cashflow, color = I("white"))) +
   geom_point(position = "jitter", alpha = .2, shape = 21) +
-  scale_x_continuous(trans = log10_trans(),
-                     breaks = c(10000, 25000, 70000,
-                                239113, 
-                                500000, 2000000)) +
-  scale_y_continuous(trans = log10_trans(),
-                     breaks = c(1000, 9000, 20000,
-                                40000, 100000)) +
+  scale_x_continuous(trans = log10_trans()) +
+  scale_y_continuous(trans = log10_trans()) +
   scale_color_brewer(palette = "Set1") +
   facet_grid(head_class~cashflow)
 ```
@@ -711,17 +770,15 @@ expenses for vices.
 I take a look at the savings of each Filipino households by taking in a new
 variable *savings*, which is income minus expense.
 
-```{r}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 fies <- transform(fies, savings = income - expense)
-
 fies <- transform(fies, sav_inc_ratio = savings/income)
-
-head(fies)
 ```
 
-Once I have the Savings of each household, I divide savings over income to get the ratio. I was surprised to see many households in debt.
+Once I have the Savings of each household, I divide savings over income to get
+the ratio. I was surprised to see many households in debt.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 fies$finance <- with(fies,
                 ifelse(sav_inc_ratio < 0, "deficit",
                 ifelse(sav_inc_ratio > 0, "surplus", "deficit")))
@@ -735,14 +792,14 @@ I counted how many were in debt and those who had a surplus and found that it
 was not that many. Only 313 out ouf 41,544 households were in debt and who were
 living beyond their means. It is only 0.75 % of the population.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 summary(fies$sav_inc_ratio)
 ```
 
 With the summary of savings to income ration, I see that most Filipinos would
 save half of their income.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(subset(fies, !is.na(head_class)),
        aes(sav_inc_ratio)) +
   geom_histogram(binwidth = .02) +
@@ -754,7 +811,7 @@ ggplot(subset(fies, !is.na(head_class)),
 It is good to know that most Filipinos would save their money rather than
 spending it.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(subset(fies, !is.na(head_class)), 
        aes(sav_inc_ratio)) +
   geom_histogram(binwidth = .02) +
@@ -767,20 +824,19 @@ ggplot(subset(fies, !is.na(head_class)),
 I facet the same graph according to the working class and see a similar trend
 when graphing income.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(subset(fies, !is.na(head_class)),
        aes(income, savings, color = head_class)) +
   geom_point(alpha = .1) +
   scale_x_continuous(limits = c(0, quantile(fies$income, .98))) +
-  scale_y_continuous(limits = c(0, quantile(fies$savings, .98)),
-                     breaks = c(200000, 400000, 600000, 800000)) +
-  facet_wrap(~head_class)
+  scale_y_continuous(limits = c(0, quantile(fies$savings, .98))) +
+  facet_wrap(~head_class, ncol = 2)
 ```
 
 Savings and income in a scatterpolt allows me to see a linear trend for all
 working classes.
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(subset(fies, !is.na(head_class)),
        aes(income, savings, color = head_class)) +
   geom_point(alpha = .1) +
@@ -788,15 +844,30 @@ ggplot(subset(fies, !is.na(head_class)),
   scale_y_continuous(limits = c(0, quantile(fies$savings, .98)))
 ```
 
-It seems that savings proportion is consistent in that as income increases, so does their proportion of savings.
+It seems that savings proportion is consistent in that as income increases, so
+does their proportion of savings.
 
+## Mutlivariate Analysis
+### Were there features that strengthened each other?
+It is interesting to discover that the ratio between income from business and
+from salaries varies in the working class. Experts, Government and Workers
+would be heavily dependent on their Salaries while Office employees and Farmers
+have their sources of income split, with salaries as their main source of
+income.
+
+### Were there any surprising interactions between features?
+As I plot the relationship between income and their expenses, it is surprising
+to see that the relationship between food expense and income gradually weakens
+as income increases. And it is overtaken by housing expenses. I guess their
+food preference do not change as their income increases but their ambitions of
+having a bigger house continually changes. This is something that requires
+further analysis.
 
 ## Final Plots
 
 ### Side Business
 
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
-library("ggthemes")
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(fies.dual, aes(head_class, prop, fill = inc_type)) +
   geom_boxplot() +
@@ -807,11 +878,18 @@ ggplot(fies.dual, aes(head_class, prop, fill = inc_type)) +
 
 ```
 
-Filipino households would tend to have 2 sources of income, either from their salaries or from their side businesses. Experts, workers and government would rely mostly on their salaries. While 55% of the income of office employees and farmers would be from their salaries, 45% would be from their side business. This is interesting because it shows that office workers and farmers are more motivated to have a second source of income than the rest of the working class. Or maybe they have more extra time in their hands and that their job is not time-consuming than the other working class that they would invest it in earning more.
+Filipino households would tend to have 2 sources of income, either from their
+salaries or from their side businesses. Experts, workers and government would
+rely mostly on their salaries. While 55% of the income of office employees and
+farmers would be from their salaries, 45% would be from their side business.
+This is interesting because it shows that office workers and farmers are more
+motivated to have a second source of income than the rest of the working class.
+Or maybe they have more extra time in their hands  to have a business on the
+side to earn more income.
 
 ### Financial Priorities
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(fies.n.exp, aes(income, cash)) +
   geom_point(aes(color = cashflow),
              position = "jitter", alpha = .05) +
@@ -824,17 +902,22 @@ ggplot(fies.n.exp, aes(income, cash)) +
                                 40000, 1000000),
                      labels = comma) +
   ggtitle("Financial Priorities") +
-  xlab("Income") +
-  ylab("Cash") +
+  xlab("Income (Php)") +
+  ylab("Cash (Php)") +
   labs(color = "Expense Type") + 
-  guides(color = guide_legend(override.aes = list(alpha = 1)))
+  guides(color = guide_legend(override.aes = list(alpha = 1))) +
+  geom_smooth(method = "lm", aes(color = cashflow))
 ```
 
-Filipinos would generally prioritize Food, Housing, Living and Luxry items over everything else. Lower income households would have Food (Green) as their top priority but as income grows, it levels off and housing income slowly takes over as their main income. I guess their food preferences and cost does not change as income increases.
+Filipinos would generally prioritize Food, Housing, Living and Luxry items
+over everything else. Lower income households would have Food (Green) as their
+top priority but, as income grows, it levels off and housing expense slowly 
+takes over as their most expensive priority. I guess their food preferences and
+cost does not change as income increases.
 
 ### Filipino Savings
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(subset(fies, !is.na(head_class)), 
        aes(sav_inc_ratio)) +
   geom_histogram(binwidth = .05, col=I("white"), fill = I("#0089F2")) +
