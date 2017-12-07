@@ -396,11 +396,13 @@ ggplot(subset(fies, income != 0 &
                 !is.na(head_class)), 
        aes(income)) +
   geom_histogram(col=I("white")) +
-  scale_x_continuous(trans = log10_trans(), 
-                     breaks = c(10000, 25000, 70000,
-                                239113, 
-                                500000, 2000000),
+  scale_x_continuous(trans = log10_trans(),
+                     breaks = c(3000, 10000, 50000, 239113, 1500000), 
+                     labels = comma,
                      limits = c(2000, 2500000)) +
+  scale_y_continuous(breaks = c(0, 500, 1000, 1500,
+                               2000, 2500),
+                     limits = c(0, 2500)) +
   facet_wrap( ~ head_class, ncol = 2)  +
   geom_vline(data = subset(fies, !is.na(head_class)),
              aes(xintercept = inc.ave),
@@ -679,7 +681,7 @@ expenses according to the following categories:
 - *Education:* Education Expenses.
 - *Farming:* Farming and Gardening Expenses.
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, include=FALSE}
 fies %>%
   mutate(expense = exp_bread + exp_rice + exp_meat + exp_seafood + 
            exp_fruit + exp_veg + exp_resto_hotel + exp_spec + exp_clothe +

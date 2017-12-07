@@ -636,37 +636,6 @@ expenses according to the following categories:
 - *Farming:* Farming and Gardening Expenses.
 
 
-```
-## # A tibble: 41,544 x 63
-##    income region expense                     source agri_house exp_bread
-##     <int>  <chr>   <int>                      <chr>      <int>     <int>
-##  1 480332    CAR  347889              Wage/Salaries          0     42140
-##  2 198235    CAR  212834              Wage/Salaries          0     17329
-##  3  82785    CAR  123885              Wage/Salaries          1     34182
-##  4 107589    CAR  152082              Wage/Salaries          0     34030
-##  5 189322    CAR  204919              Wage/Salaries          0     34820
-##  6 152883    CAR  133177              Wage/Salaries          0     29065
-##  7 198621    CAR  272643              Wage/Salaries          0     40992
-##  8 134961    CAR  242183    Other sources of Income          1     37168
-##  9 171152    CAR  113826    Other sources of Income          0     23117
-## 10 625753    CAR  329274 Enterpreneurial Activities          0     56003
-## # ... with 41,534 more rows, and 57 more variables: exp_rice <int>,
-## #   exp_meat <int>, exp_seafood <int>, exp_fruit <int>, exp_veg <int>,
-## #   exp_resto_hotel <int>, exp_alcoh <int>, exp_taba <int>,
-## #   exp_clothe <int>, exp_house_water <int>, exp_rent <int>,
-## #   exp_med <int>, exp_trans <int>, exp_comms <int>, exp_edu <int>,
-## #   exp_misc <int>, exp_spec <int>, exp_farm <int>, inc_entrep <int>,
-## #   head_gender <chr>, head_age <int>, head_stat <chr>, head_educ <chr>,
-## #   head_job_bus <chr>, head_occup <fctr>, head_workclass <fctr>,
-## #   family_t <chr>, family_n <int>, baby_n <int>, kid_n <int>,
-## #   employed_n <int>, house_t <chr>, roof_t <chr>, wall_t <chr>,
-## #   house_area <int>, house_age <int>, bed_n <int>, house_tenure <chr>,
-## #   toilet <chr>, electric <int>, water_t <chr>, tv_n <int>, DVD_n <int>,
-## #   sterio_n <int>, ref_n <int>, wash_n <int>, aircon_n <int>,
-## #   car_n <int>, tel_n <int>, cell_n <int>, pc_n <int>, stove_n <int>,
-## #   mboat_n <int>, mbike_n <int>, head_class <ord>, inc_work <int>,
-## #   id <int>
-```
 
 I add the expenses overall and add it to our main table *fies* as *expense*.
 
